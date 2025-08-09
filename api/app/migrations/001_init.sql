@@ -1,17 +1,12 @@
--- Enable required extensions
+-- Initial schema and RLS for multi-tenant POS
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- App config GUC for current business
--- (No schema changes needed, we will SET this per-connection from the API)
-
--- Types
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
     CREATE TYPE user_role AS ENUM ('owner', 'manager', 'cashier', 'admin');
   END IF;
 END $$;
 
--- Tables
 CREATE TABLE IF NOT EXISTS business (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
@@ -35,7 +30,6 @@ CREATE TABLE IF NOT EXISTS user_account (
   CONSTRAINT user_business_fk FOREIGN KEY (business_id) REFERENCES business(id) ON DELETE CASCADE
 );
 
--- For non-admin users, default business_id on insert aligns to current tenant
 CREATE OR REPLACE FUNCTION set_default_business_id()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -116,7 +110,7 @@ CREATE INDEX IF NOT EXISTS idx_sale_business_created_at ON sale(business_id, cre
 CREATE INDEX IF NOT EXISTS idx_sale_item_sale ON sale_item(sale_id);
 CREATE INDEX IF NOT EXISTS idx_sale_item_product ON sale_item(product_id);
 
--- RLS policies
+-- RLS
 ALTER TABLE business ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_account ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product ENABLE ROW LEVEL SECURITY;
@@ -124,25 +118,15 @@ ALTER TABLE sale ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sale_item ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
 
--- Business: owner can see only own business by setting
 DROP POLICY IF EXISTS business_isolation ON business;
 CREATE POLICY business_isolation ON business
   USING (id = current_setting('app.current_business')::uuid)
   WITH CHECK (id = current_setting('app.current_business')::uuid);
 
--- Generic policy template for tables with business_id
-DO $$ BEGIN
-  PERFORM 1; -- placeholder to allow DO block
-END $$;
-
 DROP POLICY IF EXISTS user_account_isolation ON user_account;
 CREATE POLICY user_account_isolation ON user_account
-  USING (
-    (role = 'admin') OR (business_id = current_setting('app.current_business')::uuid)
-  )
-  WITH CHECK (
-    (role = 'admin' AND business_id IS NULL) OR (business_id = current_setting('app.current_business')::uuid)
-  );
+  USING ((role = 'admin') OR (business_id = current_setting('app.current_business')::uuid))
+  WITH CHECK ((role = 'admin' AND business_id IS NULL) OR (business_id = current_setting('app.current_business')::uuid));
 
 DROP POLICY IF EXISTS product_isolation ON product;
 CREATE POLICY product_isolation ON product
@@ -164,9 +148,7 @@ CREATE POLICY audit_log_isolation ON audit_log
   USING (business_id = current_setting('app.current_business')::uuid)
   WITH CHECK (business_id = current_setting('app.current_business')::uuid);
 
--- Helpful view for dashboard aggregates (optional). We'll compute via queries in API.
-
--- Auth helper: fetch user by email without RLS using SECURITY DEFINER
+-- Auth helper for login without RLS
 CREATE OR REPLACE FUNCTION app_get_users_by_email(p_email TEXT)
 RETURNS TABLE(
   id UUID,

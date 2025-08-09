@@ -39,6 +39,9 @@ app.include_router(admin.router)
 
 @app.on_event("startup")
 async def on_startup():
+    # Apply migrations against Supabase Postgres
+    from .migrator import apply_migrations
+    await apply_migrations()
     await init_pool()
     # Ensure global admin exists (skymusicro@gmail.com)
     from .bootstrap import ensure_global_admin
