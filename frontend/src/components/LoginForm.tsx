@@ -44,11 +44,11 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-100">
-      <div className="max-w-md w-full space-y-8 p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-primary-600 rounded-full flex items-center justify-center mb-6">
-            <LockClosedIcon className="h-8 w-8 text-white" />
+          <div className="mx-auto h-12 w-12 bg-primary-600 rounded-lg flex items-center justify-center mb-6">
+            <LockClosedIcon className="icon-lg text-white" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h2>
           <p className="text-gray-600">Sign in to your POS account</p>
@@ -57,19 +57,19 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
         <div className="card">
           <div className="card-content">
             {error && (
-              <div className="mb-4 p-4 bg-danger-50 border border-danger-200 rounded-lg">
+              <div className="mb-4 p-3 bg-danger-50 border border-danger-200 rounded-lg">
                 <p className="text-sm text-danger-700">{error}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <UserIcon className="h-5 w-5 text-gray-400" />
+                    <UserIcon className="icon text-gray-400" />
                   </div>
                   <input
                     id="email"
@@ -90,7 +90,7 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                    <LockClosedIcon className="icon text-gray-400" />
                   </div>
                   <input
                     id="password"
@@ -104,13 +104,13 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                      <EyeSlashIcon className="icon text-gray-400" />
                     ) : (
-                      <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                      <EyeIcon className="icon text-gray-400" />
                     )}
                   </button>
                 </div>
@@ -133,11 +133,11 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
             </form>
 
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">Demo Credentials:</p>
-              <p className="text-xs text-gray-500">
-                <strong>Email:</strong> admin@example.com<br />
-                <strong>Password:</strong> Admin123!
-              </p>
+              <p className="text-sm font-medium text-gray-600 mb-2">Demo Credentials:</p>
+              <div className="text-xs text-gray-500 space-y-1">
+                <p><strong>Email:</strong> admin@example.com</p>
+                <p><strong>Password:</strong> Admin123!</p>
+              </div>
             </div>
           </div>
         </div>

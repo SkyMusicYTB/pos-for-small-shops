@@ -54,19 +54,19 @@ const SuperAdminDashboard = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Super Admin Dashboard</h1>
-        <p className="text-gray-600">Overview of all businesses and system metrics</p>
+        <p className="text-gray-600 mt-1">Overview of all businesses and system metrics</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.name} className="card">
             <div className="card-content">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <stat.icon className="h-6 w-6 text-gray-400" />
+                  <stat.icon className="icon-lg text-gray-400" />
                 </div>
-                <div className="ml-5 w-0 flex-1">
+                <div className="ml-4 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
                     <dd className="flex items-baseline">
@@ -101,10 +101,10 @@ const SuperAdminDashboard = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-gray-900">{business.revenue}</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    <span className={`badge ${
                       business.status === 'Active' 
-                        ? 'bg-success-100 text-success-800' 
-                        : 'bg-warning-100 text-warning-800'
+                        ? 'badge-success' 
+                        : 'badge-warning'
                     }`}>
                       {business.status}
                     </span>
@@ -123,14 +123,14 @@ const SuperAdminDashboard = () => {
           <div className="card-content">
             <div className="space-y-4">
               <div className="flex items-start">
-                <ExclamationTriangleIcon className="h-5 w-5 text-warning-400 mt-0.5" />
+                <ExclamationTriangleIcon className="icon text-warning-400 mt-0.5" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">High CPU Usage</p>
                   <p className="text-sm text-gray-500">Server load is at 85%</p>
                 </div>
               </div>
               <div className="flex items-start">
-                <ExclamationTriangleIcon className="h-5 w-5 text-danger-400 mt-0.5" />
+                <ExclamationTriangleIcon className="icon text-danger-400 mt-0.5" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">Failed Payment</p>
                   <p className="text-sm text-gray-500">Business subscription renewal failed</p>
@@ -194,19 +194,19 @@ const BusinessDashboard = ({ user }: { user: User }) => {
         <h1 className="text-2xl font-bold text-gray-900">
           Welcome back, {user.first_name || 'Business Owner'}!
         </h1>
-        <p className="text-gray-600">Here's what's happening with your business today</p>
+        <p className="text-gray-600 mt-1">Here's what's happening with your business today</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.name} className="card">
             <div className="card-content">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <stat.icon className="h-6 w-6 text-gray-400" />
+                  <stat.icon className="icon-lg text-gray-400" />
                 </div>
-                <div className="ml-5 w-0 flex-1">
+                <div className="ml-4 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
                     <dd className="flex items-baseline">
@@ -264,8 +264,8 @@ const BusinessDashboard = ({ user }: { user: User }) => {
                     <p className="text-sm text-gray-500">Threshold: {item.threshold}</p>
                   </div>
                   <div className="text-right">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      item.stock <= 10 ? 'bg-danger-100 text-danger-800' : 'bg-warning-100 text-warning-800'
+                    <span className={`badge ${
+                      item.stock <= 10 ? 'badge-danger' : 'badge-warning'
                     }`}>
                       {item.stock} left
                     </span>

@@ -169,13 +169,13 @@ export const BusinessManagement = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Business Management</h1>
-          <p className="text-gray-600">Create and manage businesses in your POS system</p>
+          <p className="text-gray-600 mt-1">Create and manage businesses in your POS system</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
           className="btn-primary flex items-center gap-2"
         >
-          <PlusIcon className="h-4 w-4" />
+          <PlusIcon className="icon-sm" />
           Create Business
         </button>
       </div>
@@ -185,7 +185,7 @@ export const BusinessManagement = () => {
         <div className="card">
           <div className="card-content">
             <div className="flex items-center">
-              <BuildingStorefrontIcon className="h-8 w-8 text-primary-600" />
+              <BuildingStorefrontIcon className="icon-xl text-primary-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total Businesses</p>
                 <p className="text-2xl font-bold text-gray-900">{businesses.length}</p>
@@ -196,7 +196,7 @@ export const BusinessManagement = () => {
         <div className="card">
           <div className="card-content">
             <div className="flex items-center">
-              <CheckCircleIcon className="h-8 w-8 text-success-600" />
+              <CheckCircleIcon className="icon-xl text-success-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Active</p>
                 <p className="text-2xl font-bold text-gray-900">
@@ -209,7 +209,7 @@ export const BusinessManagement = () => {
         <div className="card">
           <div className="card-content">
             <div className="flex items-center">
-              <XCircleIcon className="h-8 w-8 text-warning-600" />
+              <XCircleIcon className="icon-xl text-warning-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Pending</p>
                 <p className="text-2xl font-bold text-gray-900">
@@ -222,7 +222,7 @@ export const BusinessManagement = () => {
         <div className="card">
           <div className="card-content">
             <div className="flex items-center">
-              <XCircleIcon className="h-8 w-8 text-danger-600" />
+              <XCircleIcon className="icon-xl text-danger-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Inactive</p>
                 <p className="text-2xl font-bold text-gray-900">
@@ -248,97 +248,87 @@ export const BusinessManagement = () => {
           </div>
         ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="table">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Business
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Owner
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Revenue
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Staff
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th>Business</th>
+                <th>Owner</th>
+                <th>Status</th>
+                <th>Revenue</th>
+                <th>Staff</th>
+                <th>Created</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {businesses.map((business) => (
-                <tr key={business.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <tr key={business.id}>
+                  <td>
                     <div className="flex items-center">
-                      <BuildingStorefrontIcon className="h-6 w-6 text-gray-400 mr-3" />
+                      <BuildingStorefrontIcon className="icon text-gray-400 mr-3" />
                       <div>
                         <div className="text-sm font-medium text-gray-900">{business.name}</div>
                         <div className="text-sm text-gray-500">{business.currency} • {business.timezone}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td>
                     <div>
                       <div className="text-sm font-medium text-gray-900">{business.owner_name}</div>
                       <div className="text-sm text-gray-500">{business.owner_email}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      business.status === 'active' ? 'bg-success-100 text-success-800' :
-                      business.status === 'pending' ? 'bg-warning-100 text-warning-800' :
-                      'bg-danger-100 text-danger-800'
+                  <td>
+                    <span className={`badge ${
+                      business.status === 'active' ? 'badge-success' :
+                      business.status === 'pending' ? 'badge-warning' :
+                      'badge-danger'
                     }`}>
                       {business.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="text-sm text-gray-900">
                     {business.monthly_revenue}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="text-sm text-gray-900">
                     {business.staff_count}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="text-sm text-gray-500">
                     {business.created_at}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="text-right">
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => handleViewBusiness(business)}
-                        className="text-primary-600 hover:text-primary-900"
+                        className="text-primary-600 hover:text-primary-900 p-1"
+                        title="View Details"
                       >
-                        <EyeIcon className="h-4 w-4" />
+                        <EyeIcon className="icon-sm" />
                       </button>
                       {business.status === 'pending' && (
                         <button
                           onClick={() => handleStatusChange(business.id, 'active')}
-                          className="text-success-600 hover:text-success-900"
+                          className="text-success-600 hover:text-success-900 p-1"
+                          title="Activate"
                         >
-                          <CheckCircleIcon className="h-4 w-4" />
+                          <CheckCircleIcon className="icon-sm" />
                         </button>
                       )}
                       {business.status === 'active' && (
                         <button
                           onClick={() => handleStatusChange(business.id, 'inactive')}
-                          className="text-warning-600 hover:text-warning-900"
+                          className="text-warning-600 hover:text-warning-900 p-1"
+                          title="Deactivate"
                         >
-                          <XCircleIcon className="h-4 w-4" />
+                          <XCircleIcon className="icon-sm" />
                         </button>
                       )}
                       <button
                         onClick={() => handleDeleteBusiness(business.id)}
-                        className="text-danger-600 hover:text-danger-900"
+                        className="text-danger-600 hover:text-danger-900 p-1"
+                        title="Delete"
                       >
-                        <TrashIcon className="h-4 w-4" />
+                        <TrashIcon className="icon-sm" />
                       </button>
                     </div>
                   </td>
@@ -353,7 +343,7 @@ export const BusinessManagement = () => {
       {/* Create Business Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Business</h3>
               <form onSubmit={handleCreateBusiness} className="space-y-4">
@@ -447,7 +437,7 @@ export const BusinessManagement = () => {
       {/* View Business Modal */}
       {showViewModal && selectedBusiness && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Business Details</h3>
               <div className="space-y-3">
@@ -466,10 +456,10 @@ export const BusinessManagement = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    selectedBusiness.status === 'active' ? 'bg-success-100 text-success-800' :
-                    selectedBusiness.status === 'pending' ? 'bg-warning-100 text-warning-800' :
-                    'bg-danger-100 text-danger-800'
+                  <span className={`badge ${
+                    selectedBusiness.status === 'active' ? 'badge-success' :
+                    selectedBusiness.status === 'pending' ? 'badge-warning' :
+                    'badge-danger'
                   }`}>
                     {selectedBusiness.status}
                   </span>

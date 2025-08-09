@@ -106,7 +106,7 @@ export const SalesTerminal = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Sales Terminal</h1>
-        <p className="text-gray-600">Process customer transactions quickly and efficiently</p>
+        <p className="text-gray-600 mt-1">Process customer transactions quickly and efficiently</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -117,7 +117,7 @@ export const SalesTerminal = () => {
             <div className="card-content">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search products or scan barcode..."
@@ -144,8 +144,8 @@ export const SalesTerminal = () => {
             {filteredProducts.map(product => (
               <div key={product.id} className="card cursor-pointer hover:shadow-medium transition-shadow">
                 <div className="card-content">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-medium text-gray-900 text-sm">{product.name}</h3>
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-medium text-gray-900 text-sm leading-tight">{product.name}</h3>
                     <span className="text-lg font-bold text-primary-600">${product.price.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -155,10 +155,10 @@ export const SalesTerminal = () => {
                     </div>
                     <button
                       onClick={() => addToCart(product)}
-                      className="btn-primary text-xs px-3 py-1"
+                      className="btn-primary btn-sm"
                       disabled={product.stock === 0}
                     >
-                      <PlusIcon className="h-3 w-3" />
+                      <PlusIcon className="icon-xs" />
                     </button>
                   </div>
                 </div>
@@ -180,29 +180,29 @@ export const SalesTerminal = () => {
                 <div className="space-y-3">
                   {cart.map(item => (
                     <div key={item.product.id} className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{item.product.name}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{item.product.name}</p>
                         <p className="text-xs text-gray-500">${item.product.price.toFixed(2)} each</p>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 ml-3">
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-gray-400 hover:text-gray-600 p-1"
                         >
-                          <MinusIcon className="h-4 w-4" />
+                          <MinusIcon className="icon-sm" />
                         </button>
-                        <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                        <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-gray-400 hover:text-gray-600 p-1"
                         >
-                          <PlusIcon className="h-4 w-4" />
+                          <PlusIcon className="icon-sm" />
                         </button>
                         <button
                           onClick={() => removeFromCart(item.product.id)}
-                          className="text-danger-400 hover:text-danger-600 ml-2"
+                          className="text-danger-400 hover:text-danger-600 p-1 ml-2"
                         >
-                          <TrashIcon className="h-4 w-4" />
+                          <TrashIcon className="icon-sm" />
                         </button>
                       </div>
                     </div>
@@ -247,7 +247,7 @@ export const SalesTerminal = () => {
       {/* Checkout Modal */}
       {showCheckout && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Checkout</h3>
               
@@ -261,7 +261,7 @@ export const SalesTerminal = () => {
                         paymentMethod === 'cash' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-300'
                       }`}
                     >
-                      <BanknotesIcon className="h-5 w-5 mr-2" />
+                      <BanknotesIcon className="icon mr-2" />
                       Cash
                     </button>
                     <button
@@ -270,7 +270,7 @@ export const SalesTerminal = () => {
                         paymentMethod === 'card' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-300'
                       }`}
                     >
-                      <CreditCardIcon className="h-5 w-5 mr-2" />
+                      <CreditCardIcon className="icon mr-2" />
                       Card
                     </button>
                   </div>
@@ -316,7 +316,7 @@ export const SalesTerminal = () => {
                     disabled={paymentMethod === 'cash' && parseFloat(cashReceived || '0') < total}
                     className="btn-success flex items-center gap-2"
                   >
-                    <CurrencyDollarIcon className="h-4 w-4" />
+                    <CurrencyDollarIcon className="icon-sm" />
                     Complete Sale
                   </button>
                 </div>
