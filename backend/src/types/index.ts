@@ -53,13 +53,17 @@ export interface Business {
   name: string;
   currency: string;
   timezone: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Date | string;
+  updated_at: Date | string;
   active: boolean;
+  owner_name?: string;
+  owner_email?: string;
 }
 
 export interface CreateBusinessDto {
   name: string;
+  owner_name: string;
+  owner_email: string;
   currency?: string;
   timezone?: string;
 }

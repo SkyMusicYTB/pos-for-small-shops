@@ -6,7 +6,7 @@ export declare class BusinessService {
     getAllBusinesses(): Promise<Business[]>;
     getBusinessById(id: string): Promise<Business | null>;
     updateBusiness(id: string, updates: Partial<Business>): Promise<Business>;
-    updateBusinessStatus(id: string, status: 'active' | 'inactive' | 'pending'): Promise<Business>;
+    updateBusinessStatus(id: string, status: 'active' | 'inactive'): Promise<Business>;
     deleteBusiness(id: string): Promise<void>;
     private getDemoBusinesses;
 }

@@ -188,6 +188,6 @@ BusinessController.updateValidation = [
     (0, express_validator_1.body)('timezone').optional().notEmpty().withMessage('Timezone cannot be empty'),
 ];
 BusinessController.statusValidation = [
-    (0, express_validator_1.body)('status').isIn(['active', 'inactive', 'pending']).withMessage('Invalid status'),
+    (0, express_validator_1.body)('status').isIn(['active', 'inactive']).withMessage('Invalid status'),
 ];
 //# sourceMappingURL=business.js.map
