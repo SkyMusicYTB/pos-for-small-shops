@@ -53,7 +53,13 @@ class AuthService {
                             id: mockUser.id,
                             email: mockUser.email,
                             role: mockUser.role,
-                            business_id: mockUser.business_id
+                            business_id: mockUser.business_id,
+                            first_name: 'Demo',
+                            last_name: 'Admin',
+                            active: true,
+                            last_login: new Date(),
+                            created_at: new Date(),
+                            updated_at: new Date()
                         }
                     };
                 }
@@ -129,7 +135,13 @@ class AuthService {
                         id: mockUser.id,
                         email: mockUser.email,
                         role: mockUser.role,
-                        business_id: mockUser.business_id
+                        business_id: mockUser.business_id,
+                        first_name: 'Demo',
+                        last_name: 'Admin',
+                        active: true,
+                        last_login: new Date(),
+                        created_at: new Date(),
+                        updated_at: new Date()
                     }
                 };
             }
@@ -235,9 +247,9 @@ class AuthService {
                         first_name: 'Demo',
                         last_name: 'Admin',
                         active: true,
-                        last_login: new Date().toISOString(),
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString(),
+                        last_login: new Date(),
+                        created_at: new Date(),
+                        updated_at: new Date(),
                         password_hash: ''
                     };
                 }
@@ -256,9 +268,9 @@ class AuthService {
                     first_name: 'Demo',
                     last_name: 'Admin',
                     active: true,
-                    last_login: new Date().toISOString(),
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
+                    last_login: new Date(),
+                    created_at: new Date(),
+                    updated_at: new Date(),
                     password_hash: ''
                 };
             }
