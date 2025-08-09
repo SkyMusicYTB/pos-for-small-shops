@@ -1,0 +1,444 @@
+import { useState } from 'react';
+import {
+  PlusIcon,
+  BuildingStorefrontIcon,
+  PencilIcon,
+  TrashIcon,
+  EyeIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline';
+
+interface Business {
+  id: string;
+  name: string;
+  owner_name: string;
+  owner_email: string;
+  currency: string;
+  timezone: string;
+  status: 'active' | 'inactive' | 'pending';
+  created_at: string;
+  monthly_revenue: string;
+  staff_count: number;
+}
+
+const mockBusinesses: Business[] = [
+  {
+    id: '1',
+    name: 'Coffee Corner',
+    owner_name: 'John Smith',
+    owner_email: 'john@coffeecorner.com',
+    currency: 'USD',
+    timezone: 'America/New_York',
+    status: 'active',
+    created_at: '2024-01-15',
+    monthly_revenue: '$2,340',
+    staff_count: 4,
+  },
+  {
+    id: '2',
+    name: 'Tech Store',
+    owner_name: 'Sarah Wilson',
+    owner_email: 'sarah@techstore.com',
+    currency: 'USD',
+    timezone: 'America/Los_Angeles',
+    status: 'active',
+    created_at: '2024-02-20',
+    monthly_revenue: '$5,670',
+    staff_count: 8,
+  },
+  {
+    id: '3',
+    name: 'Bakery Delights',
+    owner_name: 'Mike Johnson',
+    owner_email: 'mike@bakerydelights.com',
+    currency: 'USD',
+    timezone: 'America/Chicago',
+    status: 'pending',
+    created_at: '2024-03-01',
+    monthly_revenue: '$1,230',
+    staff_count: 3,
+  },
+];
+
+export const BusinessManagement = () => {
+  const [businesses, setBusinesses] = useState<Business[]>(mockBusinesses);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    owner_name: '',
+    owner_email: '',
+    currency: 'USD',
+    timezone: 'America/New_York',
+  });
+
+  const handleCreateBusiness = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newBusiness: Business = {
+      id: Date.now().toString(),
+      ...formData,
+      status: 'pending',
+      created_at: new Date().toISOString().split('T')[0],
+      monthly_revenue: '$0',
+      staff_count: 1,
+    };
+    setBusinesses([...businesses, newBusiness]);
+    setShowCreateModal(false);
+    setFormData({
+      name: '',
+      owner_name: '',
+      owner_email: '',
+      currency: 'USD',
+      timezone: 'America/New_York',
+    });
+  };
+
+  const handleStatusChange = (businessId: string, newStatus: 'active' | 'inactive') => {
+    setBusinesses(businesses.map(business => 
+      business.id === businessId ? { ...business, status: newStatus } : business
+    ));
+  };
+
+  const handleDeleteBusiness = (businessId: string) => {
+    if (confirm('Are you sure you want to delete this business? This action cannot be undone.')) {
+      setBusinesses(businesses.filter(business => business.id !== businessId));
+    }
+  };
+
+  const handleViewBusiness = (business: Business) => {
+    setSelectedBusiness(business);
+    setShowViewModal(true);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Business Management</h1>
+          <p className="text-gray-600">Create and manage businesses in your POS system</p>
+        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="btn-primary flex items-center gap-2"
+        >
+          <PlusIcon className="h-4 w-4" />
+          Create Business
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="card">
+          <div className="card-content">
+            <div className="flex items-center">
+              <BuildingStorefrontIcon className="h-8 w-8 text-primary-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Total Businesses</p>
+                <p className="text-2xl font-bold text-gray-900">{businesses.length}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-content">
+            <div className="flex items-center">
+              <CheckCircleIcon className="h-8 w-8 text-success-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Active</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {businesses.filter(b => b.status === 'active').length}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-content">
+            <div className="flex items-center">
+              <XCircleIcon className="h-8 w-8 text-warning-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Pending</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {businesses.filter(b => b.status === 'pending').length}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-content">
+            <div className="flex items-center">
+              <XCircleIcon className="h-8 w-8 text-danger-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Inactive</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {businesses.filter(b => b.status === 'inactive').length}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Business List */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="text-lg font-medium text-gray-900">All Businesses</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Business
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Owner
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Revenue
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Staff
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {businesses.map((business) => (
+                <tr key={business.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <BuildingStorefrontIcon className="h-6 w-6 text-gray-400 mr-3" />
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{business.name}</div>
+                        <div className="text-sm text-gray-500">{business.currency} • {business.timezone}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{business.owner_name}</div>
+                      <div className="text-sm text-gray-500">{business.owner_email}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      business.status === 'active' ? 'bg-success-100 text-success-800' :
+                      business.status === 'pending' ? 'bg-warning-100 text-warning-800' :
+                      'bg-danger-100 text-danger-800'
+                    }`}>
+                      {business.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {business.monthly_revenue}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {business.staff_count}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {business.created_at}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => handleViewBusiness(business)}
+                        className="text-primary-600 hover:text-primary-900"
+                      >
+                        <EyeIcon className="h-4 w-4" />
+                      </button>
+                      {business.status === 'pending' && (
+                        <button
+                          onClick={() => handleStatusChange(business.id, 'active')}
+                          className="text-success-600 hover:text-success-900"
+                        >
+                          <CheckCircleIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                      {business.status === 'active' && (
+                        <button
+                          onClick={() => handleStatusChange(business.id, 'inactive')}
+                          className="text-warning-600 hover:text-warning-900"
+                        >
+                          <XCircleIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeleteBusiness(business.id)}
+                        className="text-danger-600 hover:text-danger-900"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Create Business Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Business</h3>
+              <form onSubmit={handleCreateBusiness} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Business Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="input"
+                    placeholder="Enter business name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Owner Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.owner_name}
+                    onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
+                    className="input"
+                    placeholder="Enter owner name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Owner Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.owner_email}
+                    onChange={(e) => setFormData({ ...formData, owner_email: e.target.value })}
+                    className="input"
+                    placeholder="Enter owner email"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Currency
+                  </label>
+                  <select
+                    value={formData.currency}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                    className="input"
+                  >
+                    <option value="USD">USD - US Dollar</option>
+                    <option value="EUR">EUR - Euro</option>
+                    <option value="GBP">GBP - British Pound</option>
+                    <option value="CAD">CAD - Canadian Dollar</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Timezone
+                  </label>
+                  <select
+                    value={formData.timezone}
+                    onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
+                    className="input"
+                  >
+                    <option value="America/New_York">Eastern Time</option>
+                    <option value="America/Chicago">Central Time</option>
+                    <option value="America/Denver">Mountain Time</option>
+                    <option value="America/Los_Angeles">Pacific Time</option>
+                  </select>
+                </div>
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    Create Business
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Business Modal */}
+      {showViewModal && selectedBusiness && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Business Details</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Business Name</label>
+                  <p className="text-sm text-gray-900">{selectedBusiness.name}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Owner</label>
+                  <p className="text-sm text-gray-900">{selectedBusiness.owner_name}</p>
+                  <p className="text-sm text-gray-500">{selectedBusiness.owner_email}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Configuration</label>
+                  <p className="text-sm text-gray-900">{selectedBusiness.currency} • {selectedBusiness.timezone}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    selectedBusiness.status === 'active' ? 'bg-success-100 text-success-800' :
+                    selectedBusiness.status === 'pending' ? 'bg-warning-100 text-warning-800' :
+                    'bg-danger-100 text-danger-800'
+                  }`}>
+                    {selectedBusiness.status}
+                  </span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Monthly Revenue</label>
+                  <p className="text-sm text-gray-900">{selectedBusiness.monthly_revenue}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Staff Count</label>
+                  <p className="text-sm text-gray-900">{selectedBusiness.staff_count}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Created</label>
+                  <p className="text-sm text-gray-900">{selectedBusiness.created_at}</p>
+                </div>
+              </div>
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="btn-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

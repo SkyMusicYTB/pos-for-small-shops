@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react';
 import { LoginForm } from './components/LoginForm';
+import { Layout } from './components/Layout';
+import { Dashboard } from './components/Dashboard';
+import { BusinessManagement } from './components/BusinessManagement';
+import { SalesTerminal } from './components/SalesTerminal';
 import { apiService } from './services/api';
+import { type User } from './types';
 import './App.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [currentPage, setCurrentPage] = useState('dashboard');
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'error'>('checking');
 
   useEffect(() => {
@@ -27,6 +34,7 @@ function App() {
       if (apiService.isAuthenticated()) {
         const response = await apiService.getProfile();
         if (response.success) {
+          setUser(response.data);
           setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);
@@ -39,20 +47,34 @@ function App() {
     }
   };
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
+  const handleLogin = async () => {
+    try {
+      const response = await apiService.getProfile();
+      if (response.success) {
+        setUser(response.data);
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      console.error('Failed to get user profile after login:', error);
+    }
   };
 
   const handleLogout = async () => {
     await apiService.logout();
     setIsAuthenticated(false);
+    setUser(null);
+    setCurrentPage('dashboard');
+  };
+
+  const handlePageChange = (page: string) => {
+    setCurrentPage(page);
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
@@ -63,14 +85,14 @@ function App() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md">
-          <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-lg">
+          <div className="bg-danger-50 border border-danger-200 text-danger-600 px-6 py-4 rounded-lg">
             <h2 className="text-lg font-semibold mb-2">Backend Connection Failed</h2>
             <p className="mb-4">
               Cannot connect to the backend server. Please make sure the backend is running on port 3001.
             </p>
             <button
               onClick={checkBackendConnection}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              className="btn-danger"
             >
               Retry Connection
             </button>
@@ -80,87 +102,98 @@ function App() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return <LoginForm onLoginSuccess={handleLogin} />;
   }
 
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <Dashboard user={user} />;
+      case 'businesses':
+        return <BusinessManagement />;
+      case 'users':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+            <div className="card">
+              <div className="card-content">
+                <p className="text-gray-500">User management features coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'sales':
+        return <SalesTerminal />;
+      case 'inventory':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
+            <div className="card">
+              <div className="card-content">
+                <p className="text-gray-500">Inventory management features coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'staff':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
+            <div className="card">
+              <div className="card-content">
+                <p className="text-gray-500">Staff management features coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'reports':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+            <div className="card">
+              <div className="card-content">
+                <p className="text-gray-500">Reports and analytics features coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'analytics':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-gray-900">System Analytics</h1>
+            <div className="card">
+              <div className="card-content">
+                <p className="text-gray-500">System analytics features coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+            <div className="card">
+              <div className="card-content">
+                <p className="text-gray-500">Settings features coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        return <Dashboard user={user} />;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-3xl font-bold text-gray-900">POS System</h1>
-              <div className="ml-4 bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
-                Multi-tenant
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Welcome back!</span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                🎉 Authentication Successful!
-              </h2>
-              <p className="text-gray-600 mb-6">
-                You have successfully logged into the multi-tenant POS system.
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold mb-2">📊 Dashboard</h3>
-                  <p className="text-gray-600">View sales analytics and KPIs</p>
-                  <button className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                    Coming Soon
-                  </button>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold mb-2">📦 Inventory</h3>
-                  <p className="text-gray-600">Manage products and stock levels</p>
-                  <button className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                    Coming Soon
-                  </button>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold mb-2">💰 Sales</h3>
-                  <p className="text-gray-600">Process cash transactions</p>
-                  <button className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                    Coming Soon
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-8 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
-                <p className="font-medium">✅ Core Features Implemented:</p>
-                <ul className="mt-2 text-sm text-left">
-                  <li>• Multi-tenant database with RLS policies</li>
-                  <li>• JWT authentication with refresh tokens</li>
-                  <li>• Role-based access control (Super Admin, Owner, Manager, Cashier)</li>
-                  <li>• Preset super-admin account ready for use</li>
-                  <li>• Secure API endpoints with validation</li>
-                  <li>• Frontend-backend integration</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+    <Layout
+      user={user}
+      onLogout={handleLogout}
+      currentPage={currentPage}
+      onPageChange={handlePageChange}
+    >
+      {renderCurrentPage()}
+    </Layout>
   );
 }
 
