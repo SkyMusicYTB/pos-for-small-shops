@@ -61,7 +61,11 @@ class Server {
       try {
         let dbHealth;
         try {
-          dbHealth = await this.db.healthCheck();
+          const isConnected = await this.db.testConnection();
+          dbHealth = {
+            status: isConnected ? 'healthy' : 'unhealthy',
+            timestamp: new Date()
+          };
         } catch (error) {
           dbHealth = { status: 'disconnected', error: 'Database not available' };
         }

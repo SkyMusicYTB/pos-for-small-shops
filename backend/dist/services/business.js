@@ -12,9 +12,9 @@ class BusinessService {
         this.db = database_1.DatabaseService.getInstance();
     }
     async createBusiness(businessData) {
-        const supabase = this.db.getClient();
+        // Use admin client to bypass RLS
+        const supabase = this.db.getAdminClient();
         try {
-            // Start a transaction-like operation
             console.log('Creating business with data:', businessData);
             // 1. Create the business first
             const { data: business, error: businessError } = await supabase
@@ -92,39 +92,60 @@ class BusinessService {
     async getAllBusinesses() {
         try {
             console.log('Fetching all businesses...');
-            // Get businesses with their owner information
-            const { data: businesses, error } = await this.db.getClient()
+            // Use admin client to bypass RLS
+            const supabase = this.db.getAdminClient();
+            // First, get all businesses
+            const { data: businesses, error: businessError } = await supabase
                 .from('business')
-                .select(`
-          *,
-          user!business_user_business_id_fkey(
-            first_name,
-            last_name,
-            email,
-            role
-          )
-        `)
+                .select('*')
                 .order('created_at', { ascending: false });
-            if (error) {
-                console.log('Database error fetching businesses:', error);
+            if (businessError) {
+                console.log('Database error fetching businesses:', businessError);
                 return this.getDemoBusinesses();
             }
             console.log('Businesses fetched:', businesses);
-            // Transform the data to include owner info
-            return businesses.map(business => {
-                const owner = business.user?.find((u) => u.role === 'owner');
-                return {
-                    id: business.id,
-                    name: business.name,
-                    currency: business.currency,
-                    timezone: business.timezone,
-                    active: business.active,
-                    created_at: business.created_at,
-                    updated_at: business.updated_at,
-                    owner_name: owner ? `${owner.first_name} ${owner.last_name}`.trim() : 'Unknown',
-                    owner_email: owner?.email || 'Unknown'
-                };
-            });
+            // If no businesses, return empty array
+            if (!businesses || businesses.length === 0) {
+                return [];
+            }
+            // Get owners for each business
+            const businessWithOwners = await Promise.all(businesses.map(async (business) => {
+                try {
+                    const { data: owners } = await supabase
+                        .from('user')
+                        .select('first_name, last_name, email')
+                        .eq('business_id', business.id)
+                        .eq('role', 'owner')
+                        .limit(1);
+                    const owner = owners?.[0];
+                    return {
+                        id: business.id,
+                        name: business.name,
+                        currency: business.currency,
+                        timezone: business.timezone,
+                        active: business.active,
+                        created_at: business.created_at,
+                        updated_at: business.updated_at,
+                        owner_name: owner ? `${owner.first_name} ${owner.last_name}`.trim() : 'Unknown',
+                        owner_email: owner?.email || 'Unknown'
+                    };
+                }
+                catch (ownerError) {
+                    console.log('Error fetching owner for business:', business.id, ownerError);
+                    return {
+                        id: business.id,
+                        name: business.name,
+                        currency: business.currency,
+                        timezone: business.timezone,
+                        active: business.active,
+                        created_at: business.created_at,
+                        updated_at: business.updated_at,
+                        owner_name: 'Unknown',
+                        owner_email: 'Unknown'
+                    };
+                }
+            }));
+            return businessWithOwners;
         }
         catch (error) {
             console.log('Database connection failed, using demo businesses:', error);
@@ -134,17 +155,11 @@ class BusinessService {
     async getBusinessById(id) {
         try {
             console.log('Fetching business by ID:', id);
-            const { data: business, error } = await this.db.getClient()
+            // Use admin client to bypass RLS
+            const supabase = this.db.getAdminClient();
+            const { data: business, error } = await supabase
                 .from('business')
-                .select(`
-          *,
-          user!business_user_business_id_fkey(
-            first_name,
-            last_name,
-            email,
-            role
-          )
-        `)
+                .select('*')
                 .eq('id', id)
                 .single();
             if (error) {
@@ -152,7 +167,14 @@ class BusinessService {
                 const demoBusinesses = this.getDemoBusinesses();
                 return demoBusinesses.find(b => b.id === id) || null;
             }
-            const owner = business.user?.find((u) => u.role === 'owner');
+            // Get the owner information
+            const { data: owners } = await supabase
+                .from('user')
+                .select('first_name, last_name, email')
+                .eq('business_id', business.id)
+                .eq('role', 'owner')
+                .limit(1);
+            const owner = owners?.[0];
             return {
                 id: business.id,
                 name: business.name,
@@ -174,7 +196,9 @@ class BusinessService {
     async updateBusiness(id, updates) {
         try {
             console.log('Updating business:', id, updates);
-            const { data: business, error } = await this.db.getClient()
+            // Use admin client to bypass RLS
+            const supabase = this.db.getAdminClient();
+            const { data: business, error } = await supabase
                 .from('business')
                 .update({
                 name: updates.name,
@@ -211,8 +235,10 @@ class BusinessService {
     async deleteBusiness(id) {
         try {
             console.log('Deleting business:', id);
+            // Use admin client to bypass RLS
+            const supabase = this.db.getAdminClient();
             // Delete business (users will be cascade deleted)
-            const { error } = await this.db.getClient()
+            const { error } = await supabase
                 .from('business')
                 .delete()
                 .eq('id', id);
