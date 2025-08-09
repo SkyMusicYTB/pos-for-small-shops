@@ -71,4 +71,10 @@ async def create_sale(payload: SaleIn, conn=Depends(get_tenant_connection), user
                 item.product_id, qty
             )
 
+        # Audit
+        await conn.execute(
+            "INSERT INTO audit_log (business_id, user_id, action, entity, entity_id, payload) VALUES (current_setting('app.current_business')::uuid,$1,'create','sale',$2,$3)",
+            user["user_id"], sale_id, {"items": [i.dict() for i in payload.items], "discount_amount": str(discount), "total": str(total)}
+        )
+
         return SaleOut(**dict(sale_row))

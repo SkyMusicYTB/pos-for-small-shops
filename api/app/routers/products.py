@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 
-from ..deps import get_tenant_connection, require_role
+from ..deps import get_tenant_connection, require_role, get_current_user
 from ..models import ProductIn, ProductOut
 
 router = APIRouter(prefix="/products", tags=["products"]) 
 
 
 @router.post("", response_model=ProductOut, dependencies=[Depends(require_role("owner", "manager"))])
-async def create_product(payload: ProductIn, conn=Depends(get_tenant_connection)):
+async def create_product(payload: ProductIn, conn=Depends(get_tenant_connection), user=Depends(get_current_user)):
     try:
         row = await conn.fetchrow(
             """
@@ -25,6 +25,10 @@ async def create_product(payload: ProductIn, conn=Depends(get_tenant_connection)
             payload.stock_qty,
             payload.low_stock_threshold,
             payload.active,
+        )
+        await conn.execute(
+            "INSERT INTO audit_log (business_id, user_id, action, entity, entity_id, payload) VALUES (current_setting('app.current_business')::uuid,$1,'create','product',$2,$3)",
+            user["user_id"], row["id"], dict(payload)
         )
     except Exception as e:
         if "unique" in str(e).lower() and "sku" in str(e).lower():
@@ -61,7 +65,7 @@ async def get_product(product_id: str, conn=Depends(get_tenant_connection)):
 
 
 @router.put("/{product_id}", response_model=ProductOut, dependencies=[Depends(require_role("owner", "manager"))])
-async def update_product(product_id: str, payload: ProductIn, conn=Depends(get_tenant_connection)):
+async def update_product(product_id: str, payload: ProductIn, conn=Depends(get_tenant_connection), user=Depends(get_current_user)):
     try:
         row = await conn.fetchrow(
             """
@@ -80,6 +84,11 @@ async def update_product(product_id: str, payload: ProductIn, conn=Depends(get_t
             payload.low_stock_threshold,
             payload.active,
         )
+        if row:
+            await conn.execute(
+                "INSERT INTO audit_log (business_id, user_id, action, entity, entity_id, payload) VALUES (current_setting('app.current_business')::uuid,$1,'update','product',$2,$3)",
+                user["user_id"], row["id"], dict(payload)
+            )
     except Exception as e:
         if "unique" in str(e).lower() and "sku" in str(e).lower():
             raise HTTPException(status_code=400, detail="SKU already exists")
@@ -90,6 +99,10 @@ async def update_product(product_id: str, payload: ProductIn, conn=Depends(get_t
 
 
 @router.delete("/{product_id}", dependencies=[Depends(require_role("owner", "manager"))])
-async def delete_product(product_id: str, conn=Depends(get_tenant_connection)):
+async def delete_product(product_id: str, conn=Depends(get_tenant_connection), user=Depends(get_current_user)):
     res = await conn.execute("UPDATE product SET active=false WHERE id=$1", product_id)
+    await conn.execute(
+        "INSERT INTO audit_log (business_id, user_id, action, entity, entity_id, payload) VALUES (current_setting('app.current_business')::uuid,$1,'delete','product',$2,NULL)",
+        user["user_id"], product_id
+    )
     return {"status": "ok"}

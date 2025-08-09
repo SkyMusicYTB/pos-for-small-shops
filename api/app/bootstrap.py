@@ -1,6 +1,7 @@
 import asyncio
 import uuid
 from passlib.context import CryptContext
+import os
 
 from .db import init_pool, close_pool, get_connection
 from .security import hash_password
@@ -24,6 +25,19 @@ async def bootstrap(business_name: str, owner_email: str, owner_password: str, c
         )
     await close_pool()
     return business_id
+
+
+async def ensure_global_admin(email: str, password: str) -> None:
+    await init_pool()
+    async with get_connection(None) as conn:
+        row = await conn.fetchrow("SELECT id FROM user_account WHERE email=$1 AND role='admin'", email)
+        if row:
+            return
+        await conn.execute(
+            "INSERT INTO user_account (business_id, email, password_hash, role, active) VALUES (NULL,$1,$2,'admin',true)",
+            email, hash_password(password)
+        )
+    await close_pool()
 
 
 if __name__ == "__main__":

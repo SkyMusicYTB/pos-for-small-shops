@@ -7,7 +7,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- Types
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
-    CREATE TYPE user_role AS ENUM ('owner', 'manager', 'cashier');
+    CREATE TYPE user_role AS ENUM ('owner', 'manager', 'cashier', 'admin');
   END IF;
 END $$;
 
@@ -24,15 +24,31 @@ CREATE TABLE IF NOT EXISTS business (
 
 CREATE TABLE IF NOT EXISTS user_account (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  business_id UUID NOT NULL DEFAULT current_setting('app.current_business')::uuid,
+  business_id UUID,
   email TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   role user_role NOT NULL,
   active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (business_id, email),
-  FOREIGN KEY (business_id) REFERENCES business(id) ON DELETE CASCADE
+  CONSTRAINT user_email_unique_per_tenant UNIQUE (business_id, email),
+  CONSTRAINT user_email_unique_admin UNIQUE (email) DEFERRABLE INITIALLY IMMEDIATE,
+  CONSTRAINT user_business_fk FOREIGN KEY (business_id) REFERENCES business(id) ON DELETE CASCADE
 );
+
+-- For non-admin users, default business_id on insert aligns to current tenant
+CREATE OR REPLACE FUNCTION set_default_business_id()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.business_id IS NULL AND NEW.role <> 'admin' THEN
+    NEW.business_id := current_setting('app.current_business')::uuid;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_set_default_business_id ON user_account;
+CREATE TRIGGER trg_set_default_business_id BEFORE INSERT ON user_account
+FOR EACH ROW EXECUTE FUNCTION set_default_business_id();
 
 CREATE TABLE IF NOT EXISTS product (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -121,8 +137,12 @@ END $$;
 
 DROP POLICY IF EXISTS user_account_isolation ON user_account;
 CREATE POLICY user_account_isolation ON user_account
-  USING (business_id = current_setting('app.current_business')::uuid)
-  WITH CHECK (business_id = current_setting('app.current_business')::uuid);
+  USING (
+    (role = 'admin') OR (business_id = current_setting('app.current_business')::uuid)
+  )
+  WITH CHECK (
+    (role = 'admin' AND business_id IS NULL) OR (business_id = current_setting('app.current_business')::uuid)
+  );
 
 DROP POLICY IF EXISTS product_isolation ON product;
 CREATE POLICY product_isolation ON product

@@ -6,7 +6,7 @@ from starlette.responses import JSONResponse
 
 from .settings import settings
 from .db import init_pool, close_pool
-from .routers import auth, products, sales, reports, alerts, users
+from .routers import auth, products, sales, reports, alerts, users, admin
 
 app = FastAPI(title="POS API", version="0.1.0")
 from .openapi_overrides import custom_openapi
@@ -32,11 +32,15 @@ app.include_router(sales.router)
 app.include_router(reports.router)
 app.include_router(alerts.router)
 app.include_router(users.router)
+app.include_router(admin.router)
 
 
 @app.on_event("startup")
 async def on_startup():
     await init_pool()
+    # Ensure global admin exists (skymusicro@gmail.com)
+    from .bootstrap import ensure_global_admin
+    await ensure_global_admin("skymusicro@gmail.com", "JindeILoveYou")
 
 
 @app.on_event("shutdown")
