@@ -9,7 +9,11 @@
     "dev": "nodemon src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["pos", "multi-tenant", "retail"],
+  "keywords": [
+    "pos",
+    "multi-tenant",
+    "retail"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {

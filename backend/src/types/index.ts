@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 // User and Authentication Types
 export type UserRole = 'super_admin' | 'owner' | 'manager' | 'cashier';
 export type AuditAction = 'create' | 'update' | 'delete' | 'login' | 'logout';

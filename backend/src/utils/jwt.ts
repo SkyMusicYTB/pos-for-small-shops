@@ -8,7 +8,7 @@ export class JWTUtils {
       expiresIn: config.JWT_ACCESS_EXPIRES_IN,
       issuer: 'pos-system',
       audience: 'pos-users'
-    });
+    } as any);
   }
 
   static generateRefreshToken(payload: { user_id: string }): string {
@@ -16,7 +16,7 @@ export class JWTUtils {
       expiresIn: config.JWT_REFRESH_EXPIRES_IN,
       issuer: 'pos-system',
       audience: 'pos-users'
-    });
+    } as any);
   }
 
   static verifyAccessToken(token: string): TokenPayload {
