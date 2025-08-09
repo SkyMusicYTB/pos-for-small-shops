@@ -100,6 +100,21 @@ class Server {
       });
     });
     
+    // Debug route to test auth router
+    this.app.get('/api/auth', (req, res) => {
+      res.json({
+        success: true,
+        message: 'Auth router is working',
+        availableEndpoints: [
+          'POST /api/auth/login',
+          'POST /api/auth/refresh', 
+          'POST /api/auth/logout',
+          'GET /api/auth/profile',
+          'PUT /api/auth/change-password'
+        ]
+      });
+    });
+    
     this.app.use('/api/auth', authRoutes);
 
     // Catch-all route for undefined endpoints
