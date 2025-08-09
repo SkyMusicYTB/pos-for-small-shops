@@ -88,6 +88,18 @@ class Server {
     });
 
     // API routes
+    this.app.get('/api', (req, res) => {
+      res.json({
+        success: true,
+        message: 'POS System API',
+        version: '1.0.0',
+        endpoints: {
+          auth: '/api/auth',
+          health: '/health'
+        }
+      });
+    });
+    
     this.app.use('/api/auth', authRoutes);
 
     // Catch-all route for undefined endpoints

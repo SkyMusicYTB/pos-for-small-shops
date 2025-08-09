@@ -74,8 +74,9 @@ export class DatabaseService {
         timestamp: new Date()
       };
     } catch (error) {
+      console.log('Database connection failed, but continuing...');
       return {
-        status: 'error',
+        status: 'unhealthy',
         timestamp: new Date()
       };
     }
