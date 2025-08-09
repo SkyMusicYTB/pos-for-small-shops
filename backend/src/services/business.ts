@@ -13,7 +13,6 @@ export class BusinessService {
     const supabase = this.db.getClient();
     
     try {
-      // Start a transaction-like operation
       console.log('Creating business with data:', businessData);
 
       // 1. Create the business first
@@ -103,42 +102,66 @@ export class BusinessService {
     try {
       console.log('Fetching all businesses...');
       
-      // Get businesses with their owner information
-      const { data: businesses, error } = await this.db.getClient()
+      // First, get all businesses
+      const { data: businesses, error: businessError } = await this.db.getClient()
         .from('business')
-        .select(`
-          *,
-          user!business_user_business_id_fkey(
-            first_name,
-            last_name,
-            email,
-            role
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.log('Database error fetching businesses:', error);
+      if (businessError) {
+        console.log('Database error fetching businesses:', businessError);
         return this.getDemoBusinesses();
       }
 
       console.log('Businesses fetched:', businesses);
 
-      // Transform the data to include owner info
-      return businesses.map(business => {
-        const owner = business.user?.find((u: any) => u.role === 'owner');
-        return {
-          id: business.id,
-          name: business.name,
-          currency: business.currency,
-          timezone: business.timezone,
-          active: business.active,
-          created_at: business.created_at,
-          updated_at: business.updated_at,
-          owner_name: owner ? `${owner.first_name} ${owner.last_name}`.trim() : 'Unknown',
-          owner_email: owner?.email || 'Unknown'
-        } as Business;
-      });
+      // If no businesses, return empty array
+      if (!businesses || businesses.length === 0) {
+        return [];
+      }
+
+      // Get owners for each business
+      const businessWithOwners = await Promise.all(
+        businesses.map(async (business) => {
+          try {
+            const { data: owners } = await this.db.getClient()
+              .from('user')
+              .select('first_name, last_name, email')
+              .eq('business_id', business.id)
+              .eq('role', 'owner')
+              .limit(1);
+
+            const owner = owners?.[0];
+            
+            return {
+              id: business.id,
+              name: business.name,
+              currency: business.currency,
+              timezone: business.timezone,
+              active: business.active,
+              created_at: business.created_at,
+              updated_at: business.updated_at,
+              owner_name: owner ? `${owner.first_name} ${owner.last_name}`.trim() : 'Unknown',
+              owner_email: owner?.email || 'Unknown'
+            } as Business;
+          } catch (ownerError) {
+            console.log('Error fetching owner for business:', business.id, ownerError);
+            return {
+              id: business.id,
+              name: business.name,
+              currency: business.currency,
+              timezone: business.timezone,
+              active: business.active,
+              created_at: business.created_at,
+              updated_at: business.updated_at,
+              owner_name: 'Unknown',
+              owner_email: 'Unknown'
+            } as Business;
+          }
+        })
+      );
+
+      return businessWithOwners;
 
     } catch (error) {
       console.log('Database connection failed, using demo businesses:', error);
@@ -152,15 +175,7 @@ export class BusinessService {
       
       const { data: business, error } = await this.db.getClient()
         .from('business')
-        .select(`
-          *,
-          user!business_user_business_id_fkey(
-            first_name,
-            last_name,
-            email,
-            role
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
 
@@ -170,7 +185,16 @@ export class BusinessService {
         return demoBusinesses.find(b => b.id === id) || null;
       }
 
-      const owner = business.user?.find((u: any) => u.role === 'owner');
+      // Get the owner information
+      const { data: owners } = await this.db.getClient()
+        .from('user')
+        .select('first_name, last_name, email')
+        .eq('business_id', business.id)
+        .eq('role', 'owner')
+        .limit(1);
+
+      const owner = owners?.[0];
+
       return {
         id: business.id,
         name: business.name,
