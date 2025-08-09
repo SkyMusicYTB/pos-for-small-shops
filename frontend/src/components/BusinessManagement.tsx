@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   PlusIcon,
   BuildingStorefrontIcon,
-  PencilIcon,
   TrashIcon,
   EyeIcon,
   CheckCircleIcon,
   XCircleIcon,
 } from '@heroicons/react/24/outline';
+import { apiService } from '../services/api';
 
 interface Business {
   id: string;
@@ -62,7 +62,8 @@ const mockBusinesses: Business[] = [
 ];
 
 export const BusinessManagement = () => {
-  const [businesses, setBusinesses] = useState<Business[]>(mockBusinesses);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
@@ -74,36 +75,86 @@ export const BusinessManagement = () => {
     timezone: 'America/New_York',
   });
 
-  const handleCreateBusiness = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadBusinesses();
+  }, []);
+
+  const loadBusinesses = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getAllBusinesses();
+      if (response.success && response.data) {
+        // Convert the API response to match our Business interface
+        const businessesData = response.data.map((business: any) => ({
+          ...business,
+          owner_name: business.owner_name || 'N/A',
+          owner_email: business.owner_email || 'N/A', 
+          status: business.active ? 'active' : 'inactive',
+          created_at: business.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          monthly_revenue: '$0', // Would come from sales data
+          staff_count: 1, // Would come from user count
+        }));
+        setBusinesses(businessesData);
+      }
+    } catch (error) {
+      console.error('Failed to load businesses:', error);
+      // Fallback to demo data
+      setBusinesses(mockBusinesses);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newBusiness: Business = {
-      id: Date.now().toString(),
-      ...formData,
-      status: 'pending',
-      created_at: new Date().toISOString().split('T')[0],
-      monthly_revenue: '$0',
-      staff_count: 1,
-    };
-    setBusinesses([...businesses, newBusiness]);
-    setShowCreateModal(false);
-    setFormData({
-      name: '',
-      owner_name: '',
-      owner_email: '',
-      currency: 'USD',
-      timezone: 'America/New_York',
-    });
+    try {
+      const response = await apiService.createBusiness(formData);
+      if (response.success) {
+        await loadBusinesses(); // Reload the list
+        setShowCreateModal(false);
+        setFormData({
+          name: '',
+          owner_name: '',
+          owner_email: '',
+          currency: 'USD',
+          timezone: 'America/New_York',
+        });
+      } else {
+        alert('Failed to create business: ' + response.error);
+      }
+    } catch (error) {
+      console.error('Failed to create business:', error);
+      alert('Failed to create business. Please try again.');
+    }
   };
 
-  const handleStatusChange = (businessId: string, newStatus: 'active' | 'inactive') => {
-    setBusinesses(businesses.map(business => 
-      business.id === businessId ? { ...business, status: newStatus } : business
-    ));
+  const handleStatusChange = async (businessId: string, newStatus: 'active' | 'inactive') => {
+    try {
+      const response = await apiService.updateBusinessStatus(businessId, newStatus);
+      if (response.success) {
+        await loadBusinesses(); // Reload the list
+      } else {
+        alert('Failed to update business status: ' + response.error);
+      }
+    } catch (error) {
+      console.error('Failed to update business status:', error);
+      alert('Failed to update business status. Please try again.');
+    }
   };
 
-  const handleDeleteBusiness = (businessId: string) => {
+  const handleDeleteBusiness = async (businessId: string) => {
     if (confirm('Are you sure you want to delete this business? This action cannot be undone.')) {
-      setBusinesses(businesses.filter(business => business.id !== businessId));
+      try {
+        const response = await apiService.deleteBusiness(businessId);
+        if (response.success) {
+          await loadBusinesses(); // Reload the list
+        } else {
+          alert('Failed to delete business: ' + response.error);
+        }
+      } catch (error) {
+        console.error('Failed to delete business:', error);
+        alert('Failed to delete business. Please try again.');
+      }
     }
   };
 
@@ -188,6 +239,14 @@ export const BusinessManagement = () => {
         <div className="card-header">
           <h3 className="text-lg font-medium text-gray-900">All Businesses</h3>
         </div>
+        {loading ? (
+          <div className="card-content">
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+              <p className="mt-2 text-gray-500">Loading businesses...</p>
+            </div>
+          </div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -288,6 +347,7 @@ export const BusinessManagement = () => {
             </tbody>
           </table>
         </div>
+        )}
       </div>
 
       {/* Create Business Modal */}

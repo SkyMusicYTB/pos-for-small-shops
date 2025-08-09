@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { config, validateConfig } from './utils/config';
 import { DatabaseService } from './services/database';
 import { authRoutes } from './routes/auth';
+import { businessRoutes } from './routes/business';
 
 class Server {
   private app: express.Application;
@@ -95,12 +96,14 @@ class Server {
         version: '1.0.0',
         endpoints: {
           auth: '/api/auth',
+          businesses: '/api/businesses',
           health: '/health'
         }
       });
     });
     
     this.app.use('/api/auth', authRoutes);
+    this.app.use('/api/businesses', businessRoutes);
 
     // Catch-all route for undefined endpoints
     this.app.use('*', (req, res) => {

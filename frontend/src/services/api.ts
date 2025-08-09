@@ -144,6 +144,43 @@ class ApiService {
       throw new Error('Backend is not available');
     }
   }
+
+  // Business management endpoints
+  async createBusiness(businessData: {
+    name: string;
+    owner_name: string;
+    owner_email: string;
+    currency: string;
+    timezone: string;
+  }): Promise<ApiResponse<any>> {
+    const response = await this.api.post('/businesses', businessData);
+    return response.data;
+  }
+
+  async getAllBusinesses(): Promise<ApiResponse<any[]>> {
+    const response = await this.api.get('/businesses');
+    return response.data;
+  }
+
+  async getBusinessById(id: string): Promise<ApiResponse<any>> {
+    const response = await this.api.get(`/businesses/${id}`);
+    return response.data;
+  }
+
+  async updateBusiness(id: string, updates: any): Promise<ApiResponse<any>> {
+    const response = await this.api.put(`/businesses/${id}`, updates);
+    return response.data;
+  }
+
+  async updateBusinessStatus(id: string, status: string): Promise<ApiResponse<any>> {
+    const response = await this.api.patch(`/businesses/${id}/status`, { status });
+    return response.data;
+  }
+
+  async deleteBusiness(id: string): Promise<ApiResponse<any>> {
+    const response = await this.api.delete(`/businesses/${id}`);
+    return response.data;
+  }
 }
 
 export const apiService = new ApiService();

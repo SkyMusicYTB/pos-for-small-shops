@@ -7,7 +7,6 @@ import {
   CurrencyDollarIcon,
   CreditCardIcon,
   BanknotesIcon,
-  PrinterIcon,
 } from '@heroicons/react/24/outline';
 
 interface Product {

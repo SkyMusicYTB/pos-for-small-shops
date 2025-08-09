@@ -11,6 +11,7 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const config_1 = require("./utils/config");
 const database_1 = require("./services/database");
 const auth_1 = require("./routes/auth");
+const business_1 = require("./routes/business");
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
@@ -90,25 +91,13 @@ class Server {
                 version: '1.0.0',
                 endpoints: {
                     auth: '/api/auth',
+                    businesses: '/api/businesses',
                     health: '/health'
                 }
             });
         });
-        // Debug route to test auth router
-        this.app.get('/api/auth', (req, res) => {
-            res.json({
-                success: true,
-                message: 'Auth router is working',
-                availableEndpoints: [
-                    'POST /api/auth/login',
-                    'POST /api/auth/refresh',
-                    'POST /api/auth/logout',
-                    'GET /api/auth/profile',
-                    'PUT /api/auth/change-password'
-                ]
-            });
-        });
         this.app.use('/api/auth', auth_1.authRoutes);
+        this.app.use('/api/businesses', business_1.businessRoutes);
         // Catch-all route for undefined endpoints
         this.app.use('*', (req, res) => {
             res.status(404).json({
