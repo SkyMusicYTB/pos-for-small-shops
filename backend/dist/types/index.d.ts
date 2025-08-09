@@ -34,6 +34,14 @@ export interface LoginDto {
     email: string;
     password: string;
 }
+export interface RegisterDto {
+    email: string;
+    password: string;
+    role: UserRole;
+    first_name: string;
+    last_name: string;
+    business_id?: string;
+}
 export interface AuthResponse {
     user: Omit<User, 'password_hash'>;
     access_token: string;
@@ -44,12 +52,16 @@ export interface Business {
     name: string;
     currency: string;
     timezone: string;
-    created_at: Date;
-    updated_at: Date;
+    created_at: Date | string;
+    updated_at: Date | string;
     active: boolean;
+    owner_name?: string;
+    owner_email?: string;
 }
 export interface CreateBusinessDto {
     name: string;
+    owner_name: string;
+    owner_email: string;
     currency?: string;
     timezone?: string;
 }
@@ -220,9 +232,10 @@ export declare class AppError extends Error {
 export interface EnvironmentConfig {
     PORT: number;
     NODE_ENV: string;
-    SUPABASE_URL: string;
-    SUPABASE_SERVICE_ROLE_KEY: string;
-    SUPABASE_ANON_KEY: string;
+    DATABASE_URL?: string;
+    SUPABASE_URL?: string;
+    SUPABASE_SERVICE_ROLE_KEY?: string;
+    SUPABASE_ANON_KEY?: string;
     JWT_SECRET: string;
     JWT_REFRESH_SECRET: string;
     JWT_ACCESS_EXPIRES_IN: string;

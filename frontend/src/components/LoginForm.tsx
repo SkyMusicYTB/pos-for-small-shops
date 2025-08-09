@@ -1,113 +1,253 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { LockClosedIcon, UserIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { apiService } from '../services/api';
-import { LoginRequest } from '../types';
+import { type LoginRequest } from '../types';
 
 interface LoginFormProps {
   onLoginSuccess: () => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
+export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [formData, setFormData] = useState<LoginRequest>({
-    email: 'admin@example.com', // Pre-filled for demo
-    password: 'Admin123!'       // Pre-filled for demo
+    email: 'admin@example.com',
+    password: 'Admin123!'
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    setIsLoading(true);
+    setError('');
 
     try {
       const response = await apiService.login(formData);
-      
       if (response.success) {
         onLoginSuccess();
       } else {
         setError(response.error || 'Login failed');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed');
+    } catch (error) {
+      setError('Network error. Please try again.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            POS System Login
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Multi-tenant Point of Sale System
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      background: 'linear-gradient(to bottom right, #eff6ff, #ffffff, #eff6ff)',
+      padding: '3rem 1rem'
+    }}>
+      <div style={{ maxWidth: '28rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            margin: '0 auto 1.5rem', 
+            height: '3rem', 
+            width: '3rem', 
+            backgroundColor: '#2563eb', 
+            borderRadius: '0.5rem', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center' 
+          }}>
+            <LockClosedIcon className="icon-lg" style={{ color: 'white' }} />
+          </div>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem', margin: 0 }}>Welcome back</h2>
+          <p style={{ color: '#6b7280', margin: 0 }}>Sign in to your POS account</p>
+        </div>
+
+        <div className="card">
+          <div className="card-content">
+            {error && (
+              <div style={{ 
+                marginBottom: '1rem', 
+                padding: '0.75rem', 
+                backgroundColor: '#fee2e2', 
+                border: '1px solid #fecaca', 
+                borderRadius: '0.5rem' 
+              }}>
+                <p style={{ fontSize: '0.875rem', color: '#991b1b', margin: 0 }}>{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <label 
+                  htmlFor="email" 
+                  style={{ 
+                    display: 'block', 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#374151', 
+                    marginBottom: '0.5rem' 
+                  }}
+                >
+                  Email address
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    bottom: 0, 
+                    left: '0.75rem', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    pointerEvents: 'none' 
+                  }}>
+                    <UserIcon className="icon" style={{ color: '#6b7280' }} />
+                  </div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="input"
+                    style={{ paddingLeft: '2.5rem' }}
+                    placeholder="Enter your email"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label 
+                  htmlFor="password" 
+                  style={{ 
+                    display: 'block', 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#374151', 
+                    marginBottom: '0.5rem' 
+                  }}
+                >
+                  Password
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    bottom: 0, 
+                    left: '0.75rem', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    pointerEvents: 'none' 
+                  }}>
+                    <LockClosedIcon className="icon" style={{ color: '#6b7280' }} />
+                  </div>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="input"
+                    style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
+                    placeholder="Enter your password"
+                  />
+                  <button
+                    type="button"
+                    style={{ 
+                      position: 'absolute', 
+                      top: 0, 
+                      bottom: 0, 
+                      right: '0.75rem', 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: '#6b7280'
+                    }}
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="icon" />
+                    ) : (
+                      <EyeIcon className="icon" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="btn btn-primary"
+                style={{ 
+                  width: '100%', 
+                  padding: '0.75rem', 
+                  fontSize: '1rem', 
+                  fontWeight: '600' 
+                }}
+              >
+                {isLoading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ 
+                      width: '1.25rem', 
+                      height: '1.25rem', 
+                      border: '2px solid transparent', 
+                      borderTop: '2px solid white',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite',
+                      marginRight: '0.5rem'
+                    }}></div>
+                    Signing in...
+                  </div>
+                ) : (
+                  'Sign in'
+                )}
+              </button>
+            </form>
+
+            <div style={{ 
+              marginTop: '1.5rem', 
+              padding: '1rem', 
+              backgroundColor: '#f9fafb', 
+              borderRadius: '0.5rem' 
+            }}>
+              <p style={{ 
+                fontSize: '0.875rem', 
+                fontWeight: '500', 
+                color: '#6b7280', 
+                marginBottom: '0.5rem',
+                margin: 0
+              }}>Demo Credentials:</p>
+              <div style={{ fontSize: '0.75rem', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <p style={{ margin: 0 }}><strong>Email:</strong> admin@example.com</p>
+                <p style={{ margin: 0 }}><strong>Password:</strong> Admin123!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
+            Multi-tenant POS System • Secure & Scalable
           </p>
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-          
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">Email address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-
-          <div className="text-sm">
-            <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded">
-              <h4 className="font-medium mb-2">Demo Credentials:</h4>
-              <p><strong>Super Admin:</strong></p>
-              <p>Email: admin@example.com</p>
-              <p>Password: Admin123!</p>
-            </div>
-          </div>
-        </form>
+        <style>{`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     </div>
   );

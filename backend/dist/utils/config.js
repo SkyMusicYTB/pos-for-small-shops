@@ -14,6 +14,9 @@ const getEnvVar = (name, defaultValue) => {
     }
     return value;
 };
+const getOptionalEnvVar = (name, defaultValue) => {
+    return process.env[name] || defaultValue;
+};
 const getEnvNumber = (name, defaultValue) => {
     const value = process.env[name];
     if (value) {
@@ -31,10 +34,11 @@ const getEnvNumber = (name, defaultValue) => {
 exports.config = {
     PORT: getEnvNumber('PORT', 3001),
     NODE_ENV: getEnvVar('NODE_ENV', 'development'),
-    // Database
-    SUPABASE_URL: getEnvVar('SUPABASE_URL'),
-    SUPABASE_SERVICE_ROLE_KEY: getEnvVar('SUPABASE_SERVICE_ROLE_KEY'),
-    SUPABASE_ANON_KEY: getEnvVar('SUPABASE_ANON_KEY'),
+    // Database - support both PostgreSQL and Supabase
+    DATABASE_URL: getOptionalEnvVar('DATABASE_URL'),
+    SUPABASE_URL: getOptionalEnvVar('SUPABASE_URL'),
+    SUPABASE_SERVICE_ROLE_KEY: getOptionalEnvVar('SUPABASE_SERVICE_ROLE_KEY'),
+    SUPABASE_ANON_KEY: getOptionalEnvVar('SUPABASE_ANON_KEY'),
     // JWT
     JWT_SECRET: getEnvVar('JWT_SECRET'),
     JWT_REFRESH_SECRET: getEnvVar('JWT_REFRESH_SECRET'),
@@ -51,10 +55,14 @@ exports.config = {
 // Validate configuration
 const validateConfig = () => {
     console.log('Validating configuration...');
-    // Check required environment variables
+    // Check if we have either DATABASE_URL or Supabase config
+    const hasDatabase = !!exports.config.DATABASE_URL;
+    const hasSupabase = !!(exports.config.SUPABASE_URL && exports.config.SUPABASE_SERVICE_ROLE_KEY);
+    if (!hasDatabase && !hasSupabase) {
+        throw new Error('Either DATABASE_URL or SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY is required');
+    }
+    // Check required JWT variables
     const required = [
-        'SUPABASE_URL',
-        'SUPABASE_SERVICE_ROLE_KEY',
         'JWT_SECRET',
         'JWT_REFRESH_SECRET'
     ];
@@ -63,12 +71,14 @@ const validateConfig = () => {
             throw new Error(`Missing required environment variable: ${key}`);
         }
     }
-    // Validate URL formats
-    try {
-        new URL(exports.config.SUPABASE_URL);
-    }
-    catch {
-        throw new Error('SUPABASE_URL must be a valid URL');
+    // Validate URL formats if provided
+    if (exports.config.SUPABASE_URL) {
+        try {
+            new URL(exports.config.SUPABASE_URL);
+        }
+        catch {
+            throw new Error('SUPABASE_URL must be a valid URL');
+        }
     }
     // Validate JWT secrets are not default values
     if (exports.config.JWT_SECRET.includes('change-in-production') && exports.config.NODE_ENV === 'production') {
@@ -78,6 +88,7 @@ const validateConfig = () => {
         throw new Error('JWT_REFRESH_SECRET must be changed for production');
     }
     console.log('Configuration validated successfully');
+    console.log(`Database mode: ${hasDatabase ? 'PostgreSQL' : 'Supabase'}`);
 };
 exports.validateConfig = validateConfig;
 const isDevelopment = () => exports.config.NODE_ENV === 'development';

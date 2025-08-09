@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { config, validateConfig } from './utils/config';
 import { DatabaseService } from './services/database';
 import { authRoutes } from './routes/auth';
+import { businessRoutes } from './routes/business';
 
 class Server {
   private app: express.Application;
@@ -60,7 +61,11 @@ class Server {
       try {
         let dbHealth;
         try {
-          dbHealth = await this.db.healthCheck();
+          const isConnected = await this.db.testConnection();
+          dbHealth = {
+            status: isConnected ? 'healthy' : 'unhealthy',
+            timestamp: new Date()
+          };
         } catch (error) {
           dbHealth = { status: 'disconnected', error: 'Database not available' };
         }
@@ -88,7 +93,21 @@ class Server {
     });
 
     // API routes
+    this.app.get('/api', (req, res) => {
+      res.json({
+        success: true,
+        message: 'POS System API',
+        version: '1.0.0',
+        endpoints: {
+          auth: '/api/auth',
+          businesses: '/api/businesses',
+          health: '/health'
+        }
+      });
+    });
+    
     this.app.use('/api/auth', authRoutes);
+    this.app.use('/api/businesses', businessRoutes);
 
     // Catch-all route for undefined endpoints
     this.app.use('*', (req, res) => {

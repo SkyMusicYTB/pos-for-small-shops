@@ -11,6 +11,7 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const config_1 = require("./utils/config");
 const database_1 = require("./services/database");
 const auth_1 = require("./routes/auth");
+const business_1 = require("./routes/business");
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
@@ -53,7 +54,17 @@ class Server {
         // Health check endpoint
         this.app.get('/health', async (req, res) => {
             try {
-                const dbHealth = await this.db.healthCheck();
+                let dbHealth;
+                try {
+                    const isConnected = await this.db.testConnection();
+                    dbHealth = {
+                        status: isConnected ? 'healthy' : 'unhealthy',
+                        timestamp: new Date()
+                    };
+                }
+                catch (error) {
+                    dbHealth = { status: 'disconnected', error: 'Database not available' };
+                }
                 res.status(200).json({
                     success: true,
                     data: {
@@ -77,7 +88,20 @@ class Server {
             }
         });
         // API routes
+        this.app.get('/api', (req, res) => {
+            res.json({
+                success: true,
+                message: 'POS System API',
+                version: '1.0.0',
+                endpoints: {
+                    auth: '/api/auth',
+                    businesses: '/api/businesses',
+                    health: '/health'
+                }
+            });
+        });
         this.app.use('/api/auth', auth_1.authRoutes);
+        this.app.use('/api/businesses', business_1.businessRoutes);
         // Catch-all route for undefined endpoints
         this.app.use('*', (req, res) => {
             res.status(404).json({
@@ -117,15 +141,16 @@ class Server {
             console.log('✅ Database connected successfully');
         }
         catch (error) {
-            console.error('❌ Database connection failed:', error);
-            process.exit(1);
+            console.error('⚠️  Database connection failed:', error);
+            console.log('⚠️  Server will start without database connection');
+            console.log('⚠️  Please ensure Supabase is running and migrations are applied');
         }
     }
     async start() {
         try {
             // Validate configuration
             (0, config_1.validateConfig)();
-            // Connect to database
+            // Try to connect to database (but don't fail if it's not available)
             await this.connectDatabase();
             // Start the server
             const PORT = config_1.config.PORT;
@@ -140,6 +165,10 @@ class Server {
                     console.log(`   Password: ${config_1.config.SUPER_ADMIN_PASSWORD}`);
                     console.log(`   ⚠️  Please change the password after first login\n`);
                 }
+                console.log(`\n📋 Next Steps:`);
+                console.log(`   1. Start Supabase: supabase start`);
+                console.log(`   2. Run migrations: See WINDOWS_SETUP.md`);
+                console.log(`   3. Test frontend: cd ../frontend && npm run dev\n`);
             });
         }
         catch (error) {

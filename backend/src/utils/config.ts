@@ -12,6 +12,10 @@ const getEnvVar = (name: string, defaultValue?: string): string => {
   return value;
 };
 
+const getOptionalEnvVar = (name: string, defaultValue?: string): string | undefined => {
+  return process.env[name] || defaultValue;
+};
+
 const getEnvNumber = (name: string, defaultValue?: number): number => {
   const value = process.env[name];
   if (value) {
@@ -31,10 +35,11 @@ export const config: EnvironmentConfig = {
   PORT: getEnvNumber('PORT', 3001),
   NODE_ENV: getEnvVar('NODE_ENV', 'development'),
   
-  // Database
-  SUPABASE_URL: getEnvVar('SUPABASE_URL'),
-  SUPABASE_SERVICE_ROLE_KEY: getEnvVar('SUPABASE_SERVICE_ROLE_KEY'),
-  SUPABASE_ANON_KEY: getEnvVar('SUPABASE_ANON_KEY'),
+  // Database - support both PostgreSQL and Supabase
+  DATABASE_URL: getOptionalEnvVar('DATABASE_URL'),
+  SUPABASE_URL: getOptionalEnvVar('SUPABASE_URL'),
+  SUPABASE_SERVICE_ROLE_KEY: getOptionalEnvVar('SUPABASE_SERVICE_ROLE_KEY'),
+  SUPABASE_ANON_KEY: getOptionalEnvVar('SUPABASE_ANON_KEY'),
   
   // JWT
   JWT_SECRET: getEnvVar('JWT_SECRET'),
@@ -56,10 +61,16 @@ export const config: EnvironmentConfig = {
 export const validateConfig = (): void => {
   console.log('Validating configuration...');
   
-  // Check required environment variables
+  // Check if we have either DATABASE_URL or Supabase config
+  const hasDatabase = !!config.DATABASE_URL;
+  const hasSupabase = !!(config.SUPABASE_URL && config.SUPABASE_SERVICE_ROLE_KEY);
+  
+  if (!hasDatabase && !hasSupabase) {
+    throw new Error('Either DATABASE_URL or SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY is required');
+  }
+  
+  // Check required JWT variables
   const required = [
-    'SUPABASE_URL',
-    'SUPABASE_SERVICE_ROLE_KEY',
     'JWT_SECRET',
     'JWT_REFRESH_SECRET'
   ];
@@ -70,11 +81,13 @@ export const validateConfig = (): void => {
     }
   }
   
-  // Validate URL formats
-  try {
-    new URL(config.SUPABASE_URL);
-  } catch {
-    throw new Error('SUPABASE_URL must be a valid URL');
+  // Validate URL formats if provided
+  if (config.SUPABASE_URL) {
+    try {
+      new URL(config.SUPABASE_URL);
+    } catch {
+      throw new Error('SUPABASE_URL must be a valid URL');
+    }
   }
   
   // Validate JWT secrets are not default values
@@ -87,6 +100,7 @@ export const validateConfig = (): void => {
   }
   
   console.log('Configuration validated successfully');
+  console.log(`Database mode: ${hasDatabase ? 'PostgreSQL' : 'Supabase'}`);
 };
 
 export const isDevelopment = (): boolean => config.NODE_ENV === 'development';
