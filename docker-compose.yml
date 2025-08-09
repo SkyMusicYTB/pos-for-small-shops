@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  api:
+    build: ./api
+    container_name: pos_api
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@10.228.3.80:5432/postgres
+      JWT_SECRET: supersecretjwt
+      JWT_REFRESH_SECRET: supersecretrefresh
+      ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+      REFRESH_TOKEN_EXPIRE_DAYS: "7"
+      RATE_LIMIT_PER_MINUTE: "60"
+      APP_ENV: docker
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    ports:
+      - "8000:8000"
+
+  web:
+    build: ./web
+    container_name: pos_web
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
