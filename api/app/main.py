@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
+from slowapi.extension import _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from starlette.responses import JSONResponse
 
@@ -12,6 +13,7 @@ app = FastAPI(title="POS API", version="0.1.0")
 from .openapi_overrides import custom_openapi
 app.openapi = lambda: custom_openapi(app)  # type: ignore
 
+from slowapi import Limiter
 limiter = Limiter(key_func=get_remote_address)  # type: ignore
 app.state.limiter = limiter
 app.add_exception_handler(Exception, lambda r, e: JSONResponse({"detail": str(e)}, status_code=500))

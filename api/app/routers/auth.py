@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from slowapi.extension import _rate_limit_exceeded_handler
 from fastapi import Request
 
 from ..db import get_connection
@@ -16,7 +17,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[f"{settings.rate_
 
 @router.post("/login", response_model=TokenPair)
 @limiter.limit("10/minute")  # type: ignore
-async def login(req: Request, payload: LoginRequest):
+async def login(request: Request, payload: LoginRequest):
     async with get_connection(None) as conn:
         row = await conn.fetchrow(
             "SELECT * FROM app_get_users_by_email($1) LIMIT 1",
