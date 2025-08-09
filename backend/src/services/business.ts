@@ -10,7 +10,8 @@ export class BusinessService {
   }
 
   async createBusiness(businessData: CreateBusinessDto): Promise<Business> {
-    const supabase = this.db.getClient();
+    // Use admin client to bypass RLS
+    const supabase = this.db.getAdminClient();
     
     try {
       console.log('Creating business with data:', businessData);
@@ -102,8 +103,11 @@ export class BusinessService {
     try {
       console.log('Fetching all businesses...');
       
+      // Use admin client to bypass RLS
+      const supabase = this.db.getAdminClient();
+      
       // First, get all businesses
-      const { data: businesses, error: businessError } = await this.db.getClient()
+      const { data: businesses, error: businessError } = await supabase
         .from('business')
         .select('*')
         .order('created_at', { ascending: false });
@@ -124,7 +128,7 @@ export class BusinessService {
       const businessWithOwners = await Promise.all(
         businesses.map(async (business) => {
           try {
-            const { data: owners } = await this.db.getClient()
+            const { data: owners } = await supabase
               .from('user')
               .select('first_name, last_name, email')
               .eq('business_id', business.id)
@@ -173,7 +177,10 @@ export class BusinessService {
     try {
       console.log('Fetching business by ID:', id);
       
-      const { data: business, error } = await this.db.getClient()
+      // Use admin client to bypass RLS
+      const supabase = this.db.getAdminClient();
+      
+      const { data: business, error } = await supabase
         .from('business')
         .select('*')
         .eq('id', id)
@@ -186,7 +193,7 @@ export class BusinessService {
       }
 
       // Get the owner information
-      const { data: owners } = await this.db.getClient()
+      const { data: owners } = await supabase
         .from('user')
         .select('first_name, last_name, email')
         .eq('business_id', business.id)
@@ -218,7 +225,10 @@ export class BusinessService {
     try {
       console.log('Updating business:', id, updates);
 
-      const { data: business, error } = await this.db.getClient()
+      // Use admin client to bypass RLS
+      const supabase = this.db.getAdminClient();
+
+      const { data: business, error } = await supabase
         .from('business')
         .update({
           name: updates.name,
@@ -260,8 +270,11 @@ export class BusinessService {
     try {
       console.log('Deleting business:', id);
       
+      // Use admin client to bypass RLS
+      const supabase = this.db.getAdminClient();
+      
       // Delete business (users will be cascade deleted)
-      const { error } = await this.db.getClient()
+      const { error } = await supabase
         .from('business')
         .delete()
         .eq('id', id);
