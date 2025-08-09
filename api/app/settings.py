@@ -17,13 +17,13 @@ class Settings(BaseSettings):
         env_file = ".env"
 
     @field_validator("database_url")
-    def validate_db_url(cls, v: str) -> str:
-        assert v.startswith("postgresql+asyncpg://"), "DATABASE_URL must use asyncpg driver"
-        return v
+    def normalize_db_url(cls, v: str) -> str:
+        # Accept either postgresql+asyncpg:// (compose) or postgresql:// and normalize to asyncpg-compatible
+        if v.startswith("postgresql+asyncpg://"):
+            return "postgresql://" + v[len("postgresql+asyncpg://"):]
+        if v.startswith("postgresql://") or v.startswith("postgres://"):
+            return v
+        raise ValueError("DATABASE_URL must start with postgresql:// or postgres://")
 
 
-settings = Settings(
-    database_url="postgresql+asyncpg://pos:pospassword@localhost:5432/pos",
-    jwt_secret="devsecret",
-    jwt_refresh_secret="devrefresh",
-)
+settings = Settings()
