@@ -5,6 +5,7 @@ pydantic==2.8.2
 pydantic-settings==2.4.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
 slowapi==0.1.9
 orjson==3.10.7
 starlette==0.38.2

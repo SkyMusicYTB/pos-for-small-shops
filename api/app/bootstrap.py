@@ -2,9 +2,11 @@ import asyncio
 import uuid
 from passlib.context import CryptContext
 import os
+import asyncpg
 
 from .db import init_pool, close_pool, get_connection
 from .security import hash_password
+from .settings import settings
 
 
 async def bootstrap(business_name: str, owner_email: str, owner_password: str, currency: str = "$", timezone: str = "UTC") -> str:
@@ -28,8 +30,9 @@ async def bootstrap(business_name: str, owner_email: str, owner_password: str, c
 
 
 async def ensure_global_admin(email: str, password: str) -> None:
-    await init_pool()
-    async with get_connection(None) as conn:
+    # Use a direct connection so we don't interfere with the app's pool lifecycle
+    conn = await asyncpg.connect(dsn=settings.database_url)
+    try:
         row = await conn.fetchrow("SELECT id FROM user_account WHERE email=$1 AND role='admin'", email)
         if row:
             return
@@ -37,7 +40,8 @@ async def ensure_global_admin(email: str, password: str) -> None:
             "INSERT INTO user_account (business_id, email, password_hash, role, active) VALUES (NULL,$1,$2,'admin',true)",
             email, hash_password(password)
         )
-    await close_pool()
+    finally:
+        await conn.close()
 
 
 if __name__ == "__main__":
