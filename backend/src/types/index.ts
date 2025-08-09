@@ -41,6 +41,15 @@ export interface LoginDto {
   password: string;
 }
 
+export interface RegisterDto {
+  email: string;
+  password: string;
+  role: UserRole;
+  first_name: string;
+  last_name: string;
+  business_id?: string;
+}
+
 export interface AuthResponse {
   user: Omit<User, 'password_hash'>;
   access_token: string;

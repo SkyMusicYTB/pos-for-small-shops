@@ -1,18 +1,27 @@
-import { User, LoginDto, AuthResponse, CreateUserDto } from '../types';
+import { User, LoginDto, RegisterDto } from '../types';
 export declare class AuthService {
     private db;
     constructor();
-    login(loginDto: LoginDto): Promise<AuthResponse>;
-    refreshAccessToken(refreshToken: string): Promise<{
-        access_token: string;
-        refresh_token: string;
+    login(credentials: LoginDto): Promise<{
+        user: User;
+        accessToken: string;
+        refreshToken: string;
+    }>;
+    register(userData: RegisterDto): Promise<User>;
+    getUserByEmail(email: string): Promise<User | null>;
+    getUserById(id: string): Promise<User | null>;
+    refreshToken(refreshToken: string): Promise<{
+        accessToken: string;
+        refreshToken: string;
     }>;
     logout(refreshToken: string): Promise<void>;
-    createUser(createUserDto: CreateUserDto): Promise<User>;
-    validateUser(userId: string): Promise<User | null>;
+    private generateAccessToken;
+    private generateRefreshToken;
+    private updateLastLogin;
     private storeRefreshToken;
-    private removeRefreshToken;
+    private validateRefreshToken;
+    private invalidateRefreshToken;
     private logAuditEvent;
-    cleanupExpiredTokens(): Promise<void>;
+    private cleanupExpiredTokens;
 }
 //# sourceMappingURL=auth.d.ts.map

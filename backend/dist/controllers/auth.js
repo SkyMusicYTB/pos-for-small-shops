@@ -55,7 +55,7 @@ class AuthController {
                 return;
             }
             const { refresh_token } = req.body;
-            const tokens = await this.authService.refreshAccessToken(refresh_token);
+            const tokens = await this.authService.refreshToken(refresh_token);
             res.status(200).json({
                 success: true,
                 data: tokens,
@@ -111,7 +111,7 @@ class AuthController {
                 });
                 return;
             }
-            const user = await this.authService.validateUser(req.user.user_id);
+            const user = await this.authService.getUserById(req.user.user_id);
             if (!user) {
                 res.status(404).json({
                     success: false,

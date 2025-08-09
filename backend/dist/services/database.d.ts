@@ -1,16 +1,26 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { PoolClient } from 'pg';
 export declare class DatabaseService {
     private static instance;
-    private supabase;
-    private adminClient;
+    private supabase?;
+    private adminClient?;
+    private pool?;
+    private connectionType;
     private constructor();
+    private initializePostgreSQL;
+    private initializeSupabase;
     static getInstance(): DatabaseService;
-    getClient(): SupabaseClient;
+    getConnectionType(): 'postgresql' | 'supabase';
+    query(text: string, params?: any[]): Promise<any>;
+    getClient(): Promise<PoolClient>;
+    getSupabaseClient(): SupabaseClient;
     getAdminClient(): SupabaseClient;
-    setUserContext(userId: string): Promise<void>;
-    executeAsAdmin<T>(operation: (client: SupabaseClient) => Promise<T>): Promise<T>;
-    executeAsUser<T>(userId: string, operation: (client: SupabaseClient) => Promise<T>): Promise<T>;
     testConnection(): Promise<boolean>;
-    executeRawSQL(query: string, params?: any[]): Promise<any>;
+    createBusiness(businessData: any): Promise<any>;
+    getAllBusinesses(): Promise<any[]>;
+    getBusinessById(id: string): Promise<any>;
+    updateBusiness(id: string, updates: any): Promise<any>;
+    deleteBusiness(id: string): Promise<void>;
+    close(): Promise<void>;
 }
 //# sourceMappingURL=database.d.ts.map
