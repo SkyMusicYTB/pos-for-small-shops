@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { apiService } from '../services/api';
-import { LoginRequest } from '../types';
+import { type LoginRequest } from '../types';
 
 interface LoginFormProps {
   onLoginSuccess: () => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
+export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [formData, setFormData] = useState<LoginRequest>({
     email: 'admin@example.com', // Pre-filled for demo
     password: 'Admin123!'       // Pre-filled for demo
