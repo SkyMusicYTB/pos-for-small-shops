@@ -22,39 +22,24 @@ export class AuthService {
     try {
       let user: User | null = null;
 
-      if (this.db.getConnectionType() === 'postgresql') {
-        // Use PostgreSQL queries
-        console.log('Attempting PostgreSQL connection...');
-        const result = await this.db.query(
-          'SELECT * FROM "user" WHERE email = $1 AND active = true LIMIT 1',
-          [email]
-        );
-        
-        console.log('Database response - rows:', result.rows.length);
-        
-        if (result.rows.length > 0) {
-          user = result.rows[0] as User;
-        }
-      } else {
-        // Use Supabase client
-        console.log('Attempting Supabase connection...');
-        const { data: users, error } = await this.db.getAdminClient()
-          .from('user')
-          .select('*')
-          .eq('email', email)
-          .eq('active', true)
-          .limit(1);
+      // Use Supabase admin client
+      console.log('Attempting Supabase connection...');
+      const { data: users, error } = await this.db.getAdminClient()
+        .from('user')
+        .select('*')
+        .eq('email', email)
+        .eq('active', true)
+        .limit(1);
 
-        console.log('Database response - error:', error, 'users:', users ? users.length : 'null');
+      console.log('Database response - error:', error, 'users:', users ? users.length : 'null');
 
-        if (error) {
-          console.log('Database error detected, using demo mode:', error.message);
-          throw new Error(error.message);
-        }
+      if (error) {
+        console.log('Database error detected, using demo mode:', error.message);
+        throw new Error(error.message);
+      }
 
-        if (users && users.length > 0) {
-          user = users[0] as User;
-        }
+      if (users && users.length > 0) {
+        user = users[0] as User;
       }
 
       if (!user) {
