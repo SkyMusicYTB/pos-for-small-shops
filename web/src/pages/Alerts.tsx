@@ -8,7 +8,7 @@ export default function Alerts() {
     <div className="container">
       <h2>Low Stock</h2>
       <ul>
-        {items.map(i => <li key={i.id}>{i.name} (SKU {i.sku}): {i.stock_qty} <= {i.low_stock_threshold}</li>)}
+        {items.map(i => <li key={i.id}>{i.name} (SKU {i.sku}): {i.stock_qty} &le; {i.low_stock_threshold}</li>)}
       </ul>
     </div>
   )
