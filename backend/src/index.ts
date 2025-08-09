@@ -58,7 +58,13 @@ class Server {
     // Health check endpoint
     this.app.get('/health', async (req, res) => {
       try {
-        const dbHealth = await this.db.healthCheck();
+        let dbHealth;
+        try {
+          dbHealth = await this.db.healthCheck();
+        } catch (error) {
+          dbHealth = { status: 'disconnected', error: 'Database not available' };
+        }
+        
         res.status(200).json({
           success: true,
           data: {
@@ -127,8 +133,9 @@ class Server {
       }
       console.log('✅ Database connected successfully');
     } catch (error) {
-      console.error('❌ Database connection failed:', error);
-      process.exit(1);
+      console.error('⚠️  Database connection failed:', error);
+      console.log('⚠️  Server will start without database connection');
+      console.log('⚠️  Please ensure Supabase is running and migrations are applied');
     }
   }
 
@@ -137,7 +144,7 @@ class Server {
       // Validate configuration
       validateConfig();
 
-      // Connect to database
+      // Try to connect to database (but don't fail if it's not available)
       await this.connectDatabase();
 
       // Start the server
@@ -154,6 +161,11 @@ class Server {
           console.log(`   Password: ${config.SUPER_ADMIN_PASSWORD}`);
           console.log(`   ⚠️  Please change the password after first login\n`);
         }
+        
+        console.log(`\n📋 Next Steps:`);
+        console.log(`   1. Start Supabase: supabase start`);
+        console.log(`   2. Run migrations: See WINDOWS_SETUP.md`);
+        console.log(`   3. Test frontend: cd ../frontend && npm run dev\n`);
       });
     } catch (error) {
       console.error('❌ Failed to start server:', error);
