@@ -12,58 +12,17 @@ import { apiService } from '../services/api';
 interface Business {
   id: string;
   name: string;
-  owner_name: string;
-  owner_email: string;
   currency: string;
   timezone: string;
-  status: 'active' | 'inactive' | 'pending';
+  active: boolean;
   created_at: string;
-  monthly_revenue: string;
-  staff_count: number;
+  updated_at: string;
 }
-
-const mockBusinesses: Business[] = [
-  {
-    id: '1',
-    name: 'Coffee Corner',
-    owner_name: 'John Smith',
-    owner_email: 'john@coffeecorner.com',
-    currency: 'USD',
-    timezone: 'America/New_York',
-    status: 'active',
-    created_at: '2024-01-15',
-    monthly_revenue: '$2,340',
-    staff_count: 4,
-  },
-  {
-    id: '2',
-    name: 'Tech Store',
-    owner_name: 'Sarah Wilson',
-    owner_email: 'sarah@techstore.com',
-    currency: 'USD',
-    timezone: 'America/Los_Angeles',
-    status: 'active',
-    created_at: '2024-02-20',
-    monthly_revenue: '$5,670',
-    staff_count: 8,
-  },
-  {
-    id: '3',
-    name: 'Bakery Delights',
-    owner_name: 'Mike Johnson',
-    owner_email: 'mike@bakerydelights.com',
-    currency: 'USD',
-    timezone: 'America/Chicago',
-    status: 'pending',
-    created_at: '2024-03-01',
-    monthly_revenue: '$1,230',
-    staff_count: 3,
-  },
-];
 
 export const BusinessManagement = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
@@ -82,24 +41,18 @@ export const BusinessManagement = () => {
   const loadBusinesses = async () => {
     try {
       setLoading(true);
+      setError('');
       const response = await apiService.getAllBusinesses();
       if (response.success && response.data) {
-        // Convert the API response to match our Business interface
-        const businessesData = response.data.map((business: any) => ({
-          ...business,
-          owner_name: business.owner_name || 'N/A',
-          owner_email: business.owner_email || 'N/A', 
-          status: business.active ? 'active' : 'inactive',
-          created_at: business.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-          monthly_revenue: '$0', // Would come from sales data
-          staff_count: 1, // Would come from user count
-        }));
-        setBusinesses(businessesData);
+        setBusinesses(response.data);
+      } else {
+        setError('Failed to load businesses from database');
+        setBusinesses([]);
       }
     } catch (error) {
       console.error('Failed to load businesses:', error);
-      // Fallback to demo data
-      setBusinesses(mockBusinesses);
+      setError('Failed to connect to database');
+      setBusinesses([]);
     } finally {
       setLoading(false);
     }
@@ -110,7 +63,7 @@ export const BusinessManagement = () => {
     try {
       const response = await apiService.createBusiness(formData);
       if (response.success) {
-        await loadBusinesses(); // Reload the list
+        await loadBusinesses();
         setShowCreateModal(false);
         setFormData({
           name: '',
@@ -132,7 +85,7 @@ export const BusinessManagement = () => {
     try {
       const response = await apiService.updateBusinessStatus(businessId, newStatus);
       if (response.success) {
-        await loadBusinesses(); // Reload the list
+        await loadBusinesses();
       } else {
         alert('Failed to update business status: ' + response.error);
       }
@@ -147,7 +100,7 @@ export const BusinessManagement = () => {
       try {
         const response = await apiService.deleteBusiness(businessId);
         if (response.success) {
-          await loadBusinesses(); // Reload the list
+          await loadBusinesses();
         } else {
           alert('Failed to delete business: ' + response.error);
         }
@@ -163,17 +116,26 @@ export const BusinessManagement = () => {
     setShowViewModal(true);
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const getStatusDisplay = (active: boolean) => {
+    return active ? 'active' : 'inactive';
+  };
+
   return (
-    <div className="space-y-6">
+    <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Business Management</h1>
-          <p className="text-gray-600 mt-1">Create and manage businesses in your POS system</p>
+          <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Business Management</h1>
+          <p style={{ color: '#6b7280', marginTop: '0.25rem', margin: 0 }}>Create and manage businesses in your POS system</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="btn-primary flex items-center gap-2"
+          className="btn btn-primary"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <PlusIcon className="icon-sm" />
           Create Business
@@ -181,26 +143,26 @@ export const BusinessManagement = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         <div className="card">
           <div className="card-content">
-            <div className="flex items-center">
-              <BuildingStorefrontIcon className="icon-xl text-primary-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Businesses</p>
-                <p className="text-2xl font-bold text-gray-900">{businesses.length}</p>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <BuildingStorefrontIcon className="icon-xl" style={{ color: '#2563eb' }} />
+              <div style={{ marginLeft: '1rem' }}>
+                <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6b7280', margin: 0 }}>Total Businesses</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>{businesses.length}</p>
               </div>
             </div>
           </div>
         </div>
         <div className="card">
           <div className="card-content">
-            <div className="flex items-center">
-              <CheckCircleIcon className="icon-xl text-success-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Active</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {businesses.filter(b => b.status === 'active').length}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <CheckCircleIcon className="icon-xl" style={{ color: '#16a34a' }} />
+              <div style={{ marginLeft: '1rem' }}>
+                <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6b7280', margin: 0 }}>Active</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>
+                  {businesses.filter(b => b.active).length}
                 </p>
               </div>
             </div>
@@ -208,25 +170,12 @@ export const BusinessManagement = () => {
         </div>
         <div className="card">
           <div className="card-content">
-            <div className="flex items-center">
-              <XCircleIcon className="icon-xl text-warning-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {businesses.filter(b => b.status === 'pending').length}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center">
-              <XCircleIcon className="icon-xl text-danger-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Inactive</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {businesses.filter(b => b.status === 'inactive').length}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <XCircleIcon className="icon-xl" style={{ color: '#dc2626' }} />
+              <div style={{ marginLeft: '1rem' }}>
+                <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6b7280', margin: 0 }}>Inactive</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>
+                  {businesses.filter(b => !b.active).length}
                 </p>
               </div>
             </div>
@@ -237,95 +186,97 @@ export const BusinessManagement = () => {
       {/* Business List */}
       <div className="card">
         <div className="card-header">
-          <h3 className="text-lg font-medium text-gray-900">All Businesses</h3>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827', margin: 0 }}>All Businesses</h3>
         </div>
         {loading ? (
           <div className="card-content">
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-              <p className="mt-2 text-gray-500">Loading businesses...</p>
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <div style={{ 
+                width: '2rem', 
+                height: '2rem', 
+                border: '2px solid #e5e7eb', 
+                borderTop: '2px solid #2563eb',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto'
+              }}></div>
+              <p style={{ marginTop: '0.5rem', color: '#6b7280' }}>Loading businesses...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="card-content">
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#dc2626' }}>
+              <p>{error}</p>
+              <button onClick={loadBusinesses} className="btn btn-primary" style={{ marginTop: '1rem' }}>
+                Retry
+              </button>
+            </div>
+          </div>
+        ) : businesses.length === 0 ? (
+          <div className="card-content">
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+              <p>No businesses found in database.</p>
+              <button onClick={() => setShowCreateModal(true)} className="btn btn-primary" style={{ marginTop: '1rem' }}>
+                Create First Business
+              </button>
             </div>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <div style={{ overflowX: 'auto' }}>
           <table className="table">
             <thead>
               <tr>
                 <th>Business</th>
-                <th>Owner</th>
                 <th>Status</th>
-                <th>Revenue</th>
-                <th>Staff</th>
                 <th>Created</th>
-                <th className="text-right">Actions</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {businesses.map((business) => (
                 <tr key={business.id}>
                   <td>
-                    <div className="flex items-center">
-                      <BuildingStorefrontIcon className="icon text-gray-400 mr-3" />
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <BuildingStorefrontIcon className="icon" style={{ color: '#6b7280', marginRight: '0.75rem' }} />
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{business.name}</div>
-                        <div className="text-sm text-gray-500">{business.currency} • {business.timezone}</div>
+                        <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#111827' }}>{business.name}</div>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>{business.currency} • {business.timezone}</div>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{business.owner_name}</div>
-                      <div className="text-sm text-gray-500">{business.owner_email}</div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`badge ${
-                      business.status === 'active' ? 'badge-success' :
-                      business.status === 'pending' ? 'badge-warning' :
-                      'badge-danger'
-                    }`}>
-                      {business.status}
+                    <span className={`badge badge-${business.active ? 'success' : 'danger'}`}>
+                      {getStatusDisplay(business.active)}
                     </span>
                   </td>
-                  <td className="text-sm text-gray-900">
-                    {business.monthly_revenue}
+                  <td style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                    {formatDate(business.created_at)}
                   </td>
-                  <td className="text-sm text-gray-900">
-                    {business.staff_count}
-                  </td>
-                  <td className="text-sm text-gray-500">
-                    {business.created_at}
-                  </td>
-                  <td className="text-right">
-                    <div className="flex justify-end space-x-2">
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                       <button
                         onClick={() => handleViewBusiness(business)}
-                        className="text-primary-600 hover:text-primary-900 p-1"
+                        style={{ padding: '0.25rem', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}
                         title="View Details"
                       >
                         <EyeIcon className="icon-sm" />
                       </button>
-                      {business.status === 'pending' && (
-                        <button
-                          onClick={() => handleStatusChange(business.id, 'active')}
-                          className="text-success-600 hover:text-success-900 p-1"
-                          title="Activate"
-                        >
-                          <CheckCircleIcon className="icon-sm" />
-                        </button>
-                      )}
-                      {business.status === 'active' && (
-                        <button
-                          onClick={() => handleStatusChange(business.id, 'inactive')}
-                          className="text-warning-600 hover:text-warning-900 p-1"
-                          title="Deactivate"
-                        >
-                          <XCircleIcon className="icon-sm" />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleStatusChange(business.id, business.active ? 'inactive' : 'active')}
+                        style={{ 
+                          padding: '0.25rem', 
+                          color: business.active ? '#dc2626' : '#16a34a', 
+                          background: 'none', 
+                          border: 'none', 
+                          cursor: 'pointer' 
+                        }}
+                        title={business.active ? 'Deactivate' : 'Activate'}
+                      >
+                        {business.active ? <XCircleIcon className="icon-sm" /> : <CheckCircleIcon className="icon-sm" />}
+                      </button>
                       <button
                         onClick={() => handleDeleteBusiness(business.id)}
-                        className="text-danger-600 hover:text-danger-900 p-1"
+                        style={{ padding: '0.25rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}
                         title="Delete"
                       >
                         <TrashIcon className="icon-sm" />
@@ -342,153 +293,179 @@ export const BusinessManagement = () => {
 
       {/* Create Business Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Business</h3>
-              <form onSubmit={handleCreateBusiness} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Business Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="input"
-                    placeholder="Enter business name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Owner Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.owner_name}
-                    onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
-                    className="input"
-                    placeholder="Enter owner name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Owner Email
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.owner_email}
-                    onChange={(e) => setFormData({ ...formData, owner_email: e.target.value })}
-                    className="input"
-                    placeholder="Enter owner email"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Currency
-                  </label>
-                  <select
-                    value={formData.currency}
-                    onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                    className="input"
-                  >
-                    <option value="USD">USD - US Dollar</option>
-                    <option value="EUR">EUR - Euro</option>
-                    <option value="GBP">GBP - British Pound</option>
-                    <option value="CAD">CAD - Canadian Dollar</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Timezone
-                  </label>
-                  <select
-                    value={formData.timezone}
-                    onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                    className="input"
-                  >
-                    <option value="America/New_York">Eastern Time</option>
-                    <option value="America/Chicago">Central Time</option>
-                    <option value="America/Denver">Mountain Time</option>
-                    <option value="America/Los_Angeles">Pacific Time</option>
-                  </select>
-                </div>
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateModal(false)}
-                    className="btn-secondary"
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    Create Business
-                  </button>
-                </div>
-              </form>
-            </div>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+            width: '100%',
+            maxWidth: '400px',
+            margin: '1rem'
+          }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827', marginBottom: '1rem' }}>Create New Business</h3>
+            <form onSubmit={handleCreateBusiness} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.25rem' }}>
+                  Business Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="input"
+                  placeholder="Enter business name"
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.25rem' }}>
+                  Owner Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.owner_name}
+                  onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
+                  className="input"
+                  placeholder="Enter owner name"
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.25rem' }}>
+                  Owner Email
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formData.owner_email}
+                  onChange={(e) => setFormData({ ...formData, owner_email: e.target.value })}
+                  className="input"
+                  placeholder="Enter owner email"
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.25rem' }}>
+                  Currency
+                </label>
+                <select
+                  value={formData.currency}
+                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                  className="input"
+                >
+                  <option value="USD">USD - US Dollar</option>
+                  <option value="EUR">EUR - Euro</option>
+                  <option value="GBP">GBP - British Pound</option>
+                  <option value="CAD">CAD - Canadian Dollar</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.25rem' }}>
+                  Timezone
+                </label>
+                <select
+                  value={formData.timezone}
+                  onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
+                  className="input"
+                >
+                  <option value="America/New_York">Eastern Time</option>
+                  <option value="America/Chicago">Central Time</option>
+                  <option value="America/Denver">Mountain Time</option>
+                  <option value="America/Los_Angeles">Pacific Time</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Create Business
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
       {/* View Business Modal */}
       {showViewModal && selectedBusiness && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Business Details</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Business Name</label>
-                  <p className="text-sm text-gray-900">{selectedBusiness.name}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Owner</label>
-                  <p className="text-sm text-gray-900">{selectedBusiness.owner_name}</p>
-                  <p className="text-sm text-gray-500">{selectedBusiness.owner_email}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Configuration</label>
-                  <p className="text-sm text-gray-900">{selectedBusiness.currency} • {selectedBusiness.timezone}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <span className={`badge ${
-                    selectedBusiness.status === 'active' ? 'badge-success' :
-                    selectedBusiness.status === 'pending' ? 'badge-warning' :
-                    'badge-danger'
-                  }`}>
-                    {selectedBusiness.status}
-                  </span>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Monthly Revenue</label>
-                  <p className="text-sm text-gray-900">{selectedBusiness.monthly_revenue}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Staff Count</label>
-                  <p className="text-sm text-gray-900">{selectedBusiness.staff_count}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Created</label>
-                  <p className="text-sm text-gray-900">{selectedBusiness.created_at}</p>
-                </div>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+            width: '100%',
+            maxWidth: '400px',
+            margin: '1rem'
+          }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827', marginBottom: '1rem' }}>Business Details</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>Business Name</label>
+                <p style={{ fontSize: '0.875rem', color: '#111827', margin: 0 }}>{selectedBusiness.name}</p>
               </div>
-              <div className="flex justify-end pt-4">
-                <button
-                  onClick={() => setShowViewModal(false)}
-                  className="btn-secondary"
-                >
-                  Close
-                </button>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>Configuration</label>
+                <p style={{ fontSize: '0.875rem', color: '#111827', margin: 0 }}>{selectedBusiness.currency} • {selectedBusiness.timezone}</p>
               </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>Status</label>
+                <span className={`badge badge-${selectedBusiness.active ? 'success' : 'danger'}`}>
+                  {getStatusDisplay(selectedBusiness.active)}
+                </span>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>Created</label>
+                <p style={{ fontSize: '0.875rem', color: '#111827', margin: 0 }}>{formatDate(selectedBusiness.created_at)}</p>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>Last Updated</label>
+                <p style={{ fontSize: '0.875rem', color: '#111827', margin: 0 }}>{formatDate(selectedBusiness.updated_at)}</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="btn btn-secondary"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };

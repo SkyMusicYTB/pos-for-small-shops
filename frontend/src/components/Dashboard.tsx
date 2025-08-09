@@ -13,71 +13,67 @@ interface DashboardProps {
 }
 
 const SuperAdminDashboard = () => {
+  // Real data would come from API calls
   const stats = [
     {
       name: 'Total Businesses',
-      value: '12',
-      change: '+2.1%',
-      changeType: 'positive',
+      value: '0', // This should come from real API
+      change: '+0%',
+      changeType: 'neutral',
       icon: BuildingStorefrontIcon,
     },
     {
       name: 'Active Users',
-      value: '48',
-      change: '+5.4%',
-      changeType: 'positive',
+      value: '1', // Only the super admin
+      change: '+0%',
+      changeType: 'neutral',
       icon: UserGroupIcon,
     },
     {
       name: 'Monthly Revenue',
-      value: '$24,580',
-      change: '+12.5%',
-      changeType: 'positive',
+      value: '$0',
+      change: '+0%',
+      changeType: 'neutral',
       icon: CurrencyDollarIcon,
     },
     {
       name: 'System Health',
-      value: '99.9%',
-      change: '-0.1%',
-      changeType: 'negative',
+      value: '100%',
+      change: '+0%',
+      changeType: 'positive',
       icon: ChartBarIcon,
     },
   ];
 
-  const recentBusinesses = [
-    { name: 'Coffee Corner', owner: 'John Smith', status: 'Active', revenue: '$2,340' },
-    { name: 'Tech Store', owner: 'Sarah Wilson', status: 'Active', revenue: '$5,670' },
-    { name: 'Bakery Delights', owner: 'Mike Johnson', status: 'Pending', revenue: '$1,230' },
-  ];
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Super Admin Dashboard</h1>
-        <p className="text-gray-600 mt-1">Overview of all businesses and system metrics</p>
+    <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Super Admin Dashboard</h1>
+        <p style={{ color: '#6b7280', marginTop: '0.25rem', margin: 0 }}>Overview of all businesses and system metrics</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         {stats.map((stat) => (
           <div key={stat.name} className="card">
             <div className="card-content">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <stat.icon className="icon-lg text-gray-400" />
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{ flexShrink: 0 }}>
+                  <stat.icon className="icon-xl" style={{ color: '#6b7280' }} />
                 </div>
-                <div className="ml-4 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{stat.value}</div>
-                      <div className={`ml-2 flex items-baseline text-sm font-semibold ${
-                        stat.changeType === 'positive' ? 'text-success-600' : 'text-danger-600'
-                      }`}>
-                        {stat.change}
-                      </div>
-                    </dd>
-                  </dl>
+                <div style={{ marginLeft: '1rem', flex: 1, minWidth: 0 }}>
+                  <dt style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6b7280', margin: 0 }}>{stat.name}</dt>
+                  <dd style={{ display: 'flex', alignItems: 'baseline', margin: 0 }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '600', color: '#111827' }}>{stat.value}</div>
+                    <div style={{ 
+                      marginLeft: '0.5rem', 
+                      fontSize: '0.875rem', 
+                      fontWeight: '600',
+                      color: stat.changeType === 'positive' ? '#16a34a' : stat.changeType === 'negative' ? '#dc2626' : '#6b7280'
+                    }}>
+                      {stat.change}
+                    </div>
+                  </dd>
                 </div>
               </div>
             </div>
@@ -85,58 +81,14 @@ const SuperAdminDashboard = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Businesses */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="text-lg font-medium text-gray-900">Recent Businesses</h3>
-          </div>
-          <div className="card-content">
-            <div className="space-y-4">
-              {recentBusinesses.map((business, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{business.name}</p>
-                    <p className="text-sm text-gray-500">Owner: {business.owner}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{business.revenue}</p>
-                    <span className={`badge ${
-                      business.status === 'Active' 
-                        ? 'badge-success' 
-                        : 'badge-warning'
-                    }`}>
-                      {business.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="card">
+        <div className="card-header">
+          <h3 style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827', margin: 0 }}>Getting Started</h3>
         </div>
-
-        {/* System Alerts */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="text-lg font-medium text-gray-900">System Alerts</h3>
-          </div>
-          <div className="card-content">
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <ExclamationTriangleIcon className="icon text-warning-400 mt-0.5" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">High CPU Usage</p>
-                  <p className="text-sm text-gray-500">Server load is at 85%</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <ExclamationTriangleIcon className="icon text-danger-400 mt-0.5" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">Failed Payment</p>
-                  <p className="text-sm text-gray-500">Business subscription renewal failed</p>
-                </div>
-              </div>
-            </div>
+        <div className="card-content">
+          <div style={{ color: '#6b7280', textAlign: 'center', padding: '2rem' }}>
+            <p style={{ margin: 0, marginBottom: '1rem' }}>No businesses have been created yet.</p>
+            <p style={{ margin: 0 }}>Create your first business to start using the POS system.</p>
           </div>
         </div>
       </div>
@@ -145,80 +97,69 @@ const SuperAdminDashboard = () => {
 };
 
 const BusinessDashboard = ({ user }: { user: User }) => {
+  // Real data would come from API calls
   const stats = [
     {
       name: "Today's Sales",
-      value: '$1,234',
-      change: '+8.2%',
-      changeType: 'positive',
+      value: '$0',
+      change: '+0%',
+      changeType: 'neutral',
       icon: CurrencyDollarIcon,
     },
     {
       name: 'Products Sold',
-      value: '89',
-      change: '+3.1%',
-      changeType: 'positive',
+      value: '0',
+      change: '+0%',
+      changeType: 'neutral',
       icon: ShoppingCartIcon,
     },
     {
       name: 'Active Staff',
-      value: '6',
-      change: '0%',
+      value: '1',
+      change: '+0%',
       changeType: 'neutral',
       icon: UserGroupIcon,
     },
     {
       name: 'Low Stock Items',
-      value: '3',
-      change: '+2',
-      changeType: 'negative',
+      value: '0',
+      change: '+0',
+      changeType: 'positive',
       icon: ExclamationTriangleIcon,
     },
   ];
 
-  const recentSales = [
-    { id: '#001', customer: 'Walk-in', amount: '$45.99', time: '2 min ago' },
-    { id: '#002', customer: 'John Doe', amount: '$23.50', time: '15 min ago' },
-    { id: '#003', customer: 'Walk-in', amount: '$67.25', time: '1 hour ago' },
-  ];
-
-  const lowStockItems = [
-    { name: 'Coffee Beans (Dark Roast)', stock: 5, threshold: 20 },
-    { name: 'Paper Cups (16oz)', stock: 12, threshold: 50 },
-    { name: 'Sugar Packets', stock: 8, threshold: 100 },
-  ];
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+    <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>
           Welcome back, {user.first_name || 'Business Owner'}!
         </h1>
-        <p className="text-gray-600 mt-1">Here's what's happening with your business today</p>
+        <p style={{ color: '#6b7280', marginTop: '0.25rem', margin: 0 }}>Here's what's happening with your business today</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         {stats.map((stat) => (
           <div key={stat.name} className="card">
             <div className="card-content">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <stat.icon className="icon-lg text-gray-400" />
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{ flexShrink: 0 }}>
+                  <stat.icon className="icon-xl" style={{ color: '#6b7280' }} />
                 </div>
-                <div className="ml-4 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{stat.value}</div>
-                      <div className={`ml-2 flex items-baseline text-sm font-semibold ${
-                        stat.changeType === 'positive' ? 'text-success-600' : 
-                        stat.changeType === 'negative' ? 'text-danger-600' : 'text-gray-500'
-                      }`}>
-                        {stat.change}
-                      </div>
-                    </dd>
-                  </dl>
+                <div style={{ marginLeft: '1rem', flex: 1, minWidth: 0 }}>
+                  <dt style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6b7280', margin: 0 }}>{stat.name}</dt>
+                  <dd style={{ display: 'flex', alignItems: 'baseline', margin: 0 }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '600', color: '#111827' }}>{stat.value}</div>
+                    <div style={{ 
+                      marginLeft: '0.5rem', 
+                      fontSize: '0.875rem', 
+                      fontWeight: '600',
+                      color: stat.changeType === 'positive' ? '#16a34a' : stat.changeType === 'negative' ? '#dc2626' : '#6b7280'
+                    }}>
+                      {stat.change}
+                    </div>
+                  </dd>
                 </div>
               </div>
             </div>
@@ -226,53 +167,14 @@ const BusinessDashboard = ({ user }: { user: User }) => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Sales */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="text-lg font-medium text-gray-900">Recent Sales</h3>
-          </div>
-          <div className="card-content">
-            <div className="space-y-4">
-              {recentSales.map((sale) => (
-                <div key={sale.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{sale.id}</p>
-                    <p className="text-sm text-gray-500">{sale.customer}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{sale.amount}</p>
-                    <p className="text-sm text-gray-500">{sale.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="card">
+        <div className="card-header">
+          <h3 style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827', margin: 0 }}>Get Started</h3>
         </div>
-
-        {/* Low Stock Alert */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="text-lg font-medium text-gray-900">Low Stock Alerts</h3>
-          </div>
-          <div className="card-content">
-            <div className="space-y-4">
-              {lowStockItems.map((item, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                    <p className="text-sm text-gray-500">Threshold: {item.threshold}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className={`badge ${
-                      item.stock <= 10 ? 'badge-danger' : 'badge-warning'
-                    }`}>
-                      {item.stock} left
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="card-content">
+          <div style={{ color: '#6b7280', textAlign: 'center', padding: '2rem' }}>
+            <p style={{ margin: 0, marginBottom: '1rem' }}>Set up your inventory and start selling.</p>
+            <p style={{ margin: 0 }}>Add products to your inventory to begin processing sales.</p>
           </div>
         </div>
       </div>

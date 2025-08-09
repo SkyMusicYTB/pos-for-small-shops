@@ -23,17 +23,6 @@ interface CartItem {
   quantity: number;
 }
 
-const mockProducts: Product[] = [
-  { id: '1', name: 'Americano Coffee', price: 3.50, category: 'Beverages', stock: 100, barcode: '123456789' },
-  { id: '2', name: 'Croissant', price: 2.25, category: 'Pastries', stock: 25, barcode: '987654321' },
-  { id: '3', name: 'Cappuccino', price: 4.00, category: 'Beverages', stock: 100, barcode: '456789123' },
-  { id: '4', name: 'Blueberry Muffin', price: 2.75, category: 'Pastries', stock: 15, barcode: '789123456' },
-  { id: '5', name: 'Latte', price: 4.25, category: 'Beverages', stock: 100, barcode: '321654987' },
-  { id: '6', name: 'Sandwich - Ham & Cheese', price: 6.50, category: 'Food', stock: 20, barcode: '654987321' },
-  { id: '7', name: 'Green Tea', price: 2.50, category: 'Beverages', stock: 50, barcode: '147258369' },
-  { id: '8', name: 'Chocolate Chip Cookie', price: 1.75, category: 'Pastries', stock: 30, barcode: '963852741' },
-];
-
 export const SalesTerminal = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -41,10 +30,11 @@ export const SalesTerminal = () => {
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [cashReceived, setCashReceived] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
+  const [products] = useState<Product[]>([]); // Empty - should be loaded from API
 
   const categories = ['All', 'Beverages', 'Pastries', 'Food'];
 
-  const filteredProducts = mockProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.barcode.includes(searchTerm);
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
@@ -103,33 +93,44 @@ export const SalesTerminal = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Sales Terminal</h1>
-        <p className="text-gray-600 mt-1">Process customer transactions quickly and efficiently</p>
+    <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Sales Terminal</h1>
+        <p style={{ color: '#6b7280', marginTop: '0.25rem', margin: 0 }}>Process customer transactions quickly and efficiently</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
         {/* Product Catalog */}
-        <div className="lg:col-span-2 space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Search and Filters */}
           <div className="card">
             <div className="card-content">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-gray-400" />
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ flex: 1, position: 'relative' }}>
+                  <MagnifyingGlassIcon 
+                    className="icon-sm" 
+                    style={{ 
+                      position: 'absolute', 
+                      left: '0.75rem', 
+                      top: '50%', 
+                      transform: 'translateY(-50%)', 
+                      color: '#6b7280' 
+                    }} 
+                  />
                   <input
                     type="text"
                     placeholder="Search products or scan barcode..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="input pl-10"
+                    className="input"
+                    style={{ paddingLeft: '2.5rem' }}
                   />
                 </div>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="input w-full sm:w-auto"
+                  className="input"
+                  style={{ width: 'auto', minWidth: '150px' }}
                 >
                   {categories.map(category => (
                     <option key={category} value={category}>{category}</option>
@@ -140,67 +141,76 @@ export const SalesTerminal = () => {
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProducts.map(product => (
-              <div key={product.id} className="card cursor-pointer hover:shadow-medium transition-shadow">
-                <div className="card-content">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-medium text-gray-900 text-sm leading-tight">{product.name}</h3>
-                    <span className="text-lg font-bold text-primary-600">${product.price.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-xs text-gray-500">{product.category}</p>
-                      <p className="text-xs text-gray-500">Stock: {product.stock}</p>
-                    </div>
-                    <button
-                      onClick={() => addToCart(product)}
-                      className="btn-primary btn-sm"
-                      disabled={product.stock === 0}
-                    >
-                      <PlusIcon className="icon-xs" />
-                    </button>
-                  </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+            {filteredProducts.length === 0 ? (
+              <div className="card" style={{ gridColumn: '1 / -1' }}>
+                <div className="card-content" style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+                  <p>No products available. Add products to your inventory to start selling.</p>
                 </div>
               </div>
-            ))}
+            ) : (
+              filteredProducts.map(product => (
+                <div key={product.id} className="card" style={{ cursor: 'pointer', transition: 'box-shadow 0.2s' }}>
+                  <div className="card-content">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                      <h3 style={{ fontSize: '0.875rem', fontWeight: '500', color: '#111827', margin: 0 }}>{product.name}</h3>
+                      <span style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#2563eb' }}>${product.price.toFixed(2)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>{product.category}</p>
+                        <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Stock: {product.stock}</p>
+                      </div>
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="btn btn-primary"
+                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                        disabled={product.stock === 0}
+                      >
+                        <PlusIcon className="icon-sm" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
         {/* Shopping Cart */}
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="card">
             <div className="card-header">
-              <h3 className="text-lg font-medium text-gray-900">Current Order</h3>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827', margin: 0 }}>Current Order</h3>
             </div>
             <div className="card-content">
               {cart.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">Cart is empty</p>
+                <p style={{ color: '#6b7280', textAlign: 'center', padding: '2rem', margin: 0 }}>Cart is empty</p>
               ) : (
-                <div className="space-y-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {cart.map(item => (
-                    <div key={item.product.id} className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{item.product.name}</p>
-                        <p className="text-xs text-gray-500">${item.product.price.toFixed(2)} each</p>
+                    <div key={item.product.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#111827', margin: 0 }}>{item.product.name}</p>
+                        <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>${item.product.price.toFixed(2)} each</p>
                       </div>
-                      <div className="flex items-center space-x-2 ml-3">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '0.75rem' }}>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          className="text-gray-400 hover:text-gray-600 p-1"
+                          style={{ padding: '0.25rem', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
                           <MinusIcon className="icon-sm" />
                         </button>
-                        <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
+                        <span style={{ fontSize: '0.875rem', fontWeight: '500', width: '1.5rem', textAlign: 'center' }}>{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          className="text-gray-400 hover:text-gray-600 p-1"
+                          style={{ padding: '0.25rem', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
                           <PlusIcon className="icon-sm" />
                         </button>
                         <button
                           onClick={() => removeFromCart(item.product.id)}
-                          className="text-danger-400 hover:text-danger-600 p-1 ml-2"
+                          style={{ padding: '0.25rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', marginLeft: '0.5rem' }}
                         >
                           <TrashIcon className="icon-sm" />
                         </button>
@@ -216,25 +226,26 @@ export const SalesTerminal = () => {
           {cart.length > 0 && (
             <div className="card">
               <div className="card-content">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Subtotal:</span>
-                    <span className="text-sm font-medium">${subtotal.toFixed(2)}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>Subtotal:</span>
+                    <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>${subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Tax (8%):</span>
-                    <span className="text-sm font-medium">${tax.toFixed(2)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>Tax (8%):</span>
+                    <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>${tax.toFixed(2)}</span>
                   </div>
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between">
-                      <span className="text-base font-semibold">Total:</span>
-                      <span className="text-lg font-bold text-primary-600">${total.toFixed(2)}</span>
+                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '1rem', fontWeight: '600' }}>Total:</span>
+                      <span style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#2563eb' }}>${total.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowCheckout(true)}
-                  className="btn-primary w-full mt-4"
+                  className="btn btn-primary"
+                  style={{ width: '100%', marginTop: '1rem' }}
                 >
                   Proceed to Checkout
                 </button>
@@ -246,80 +257,113 @@ export const SalesTerminal = () => {
 
       {/* Checkout Modal */}
       {showCheckout && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Checkout</h3>
-              
-              <div className="space-y-4">
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+            width: '100%',
+            maxWidth: '400px',
+            margin: '1rem'
+          }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827', marginBottom: '1rem' }}>Checkout</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>Payment Method</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => setPaymentMethod('cash')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0.75rem',
+                      border: `1px solid ${paymentMethod === 'cash' ? '#2563eb' : '#d1d5db'}`,
+                      borderRadius: '0.5rem',
+                      backgroundColor: paymentMethod === 'cash' ? '#eff6ff' : 'white',
+                      color: paymentMethod === 'cash' ? '#1d4ed8' : '#374151',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <BanknotesIcon className="icon" style={{ marginRight: '0.5rem' }} />
+                    Cash
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod('card')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0.75rem',
+                      border: `1px solid ${paymentMethod === 'card' ? '#2563eb' : '#d1d5db'}`,
+                      borderRadius: '0.5rem',
+                      backgroundColor: paymentMethod === 'card' ? '#eff6ff' : 'white',
+                      color: paymentMethod === 'card' ? '#1d4ed8' : '#374151',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <CreditCardIcon className="icon" style={{ marginRight: '0.5rem' }} />
+                    Card
+                  </button>
+                </div>
+              </div>
+
+              {paymentMethod === 'cash' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setPaymentMethod('cash')}
-                      className={`flex items-center justify-center p-3 border rounded-lg ${
-                        paymentMethod === 'cash' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-300'
-                      }`}
-                    >
-                      <BanknotesIcon className="icon mr-2" />
-                      Cash
-                    </button>
-                    <button
-                      onClick={() => setPaymentMethod('card')}
-                      className={`flex items-center justify-center p-3 border rounded-lg ${
-                        paymentMethod === 'card' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-300'
-                      }`}
-                    >
-                      <CreditCardIcon className="icon mr-2" />
-                      Card
-                    </button>
-                  </div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.25rem' }}>
+                    Cash Received
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={cashReceived}
+                    onChange={(e) => setCashReceived(e.target.value)}
+                    className="input"
+                    placeholder="Enter amount received"
+                  />
+                  {cashReceived && parseFloat(cashReceived) >= total && (
+                    <p style={{ fontSize: '0.875rem', color: '#16a34a', marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>
+                      Change: ${change.toFixed(2)}
+                    </p>
+                  )}
                 </div>
+              )}
 
-                {paymentMethod === 'cash' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Cash Received
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={cashReceived}
-                      onChange={(e) => setCashReceived(e.target.value)}
-                      className="input"
-                      placeholder="Enter amount received"
-                    />
-                    {cashReceived && parseFloat(cashReceived) >= total && (
-                      <p className="text-sm text-success-600 mt-1">
-                        Change: ${change.toFixed(2)}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm">Total Amount:</span>
-                    <span className="text-lg font-bold">${total.toFixed(2)}</span>
-                  </div>
+              <div style={{ backgroundColor: '#f9fafb', padding: '0.75rem', borderRadius: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.875rem' }}>Total Amount:</span>
+                  <span style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>${total.toFixed(2)}</span>
                 </div>
+              </div>
 
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    onClick={() => setShowCheckout(false)}
-                    className="btn-secondary"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleCheckout}
-                    disabled={paymentMethod === 'cash' && parseFloat(cashReceived || '0') < total}
-                    className="btn-success flex items-center gap-2"
-                  >
-                    <CurrencyDollarIcon className="icon-sm" />
-                    Complete Sale
-                  </button>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+                <button
+                  onClick={() => setShowCheckout(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCheckout}
+                  disabled={paymentMethod === 'cash' && parseFloat(cashReceived || '0') < total}
+                  className="btn btn-success"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <CurrencyDollarIcon className="icon-sm" />
+                  Complete Sale
+                </button>
               </div>
             </div>
           </div>
