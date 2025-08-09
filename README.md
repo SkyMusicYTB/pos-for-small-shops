@@ -1,71 +1,132 @@
-# POS/Inventory Management System - MVP Specification
+# Offline POS (Point-of-Sale) for Small Shops
 
-## Core MVP Features
+A lightweight, offline-first POS CLI tailored for small shop owners in developing countries. Focuses on simplicity, speed, and reliability with minimal hardware requirements.
 
-### 1. Product Management
-- **Product Catalog**: Add, edit, delete products with basic info (name, price, SKU, category)
-- **Barcode Support**: Scan or manually enter barcodes for quick product lookup
-- **Inventory Tracking**: Real-time stock levels with low-stock alerts
-- **Categories**: Organize products into customizable categories
+## Features
+- Cash-only sales
+- Inventory management: add, edit, remove products
+- Track stock with per-item low-stock thresholds
+- Low-stock alerts command
+- Sales & dashboard: total sales, profit, ROI (on-demand or watch mode)
+- Modular architecture for easy future extensions (e.g., multi-user, barcodes, customers)
 
-### 2. Point of Sale (POS)
-- **Sales Interface**: Clean, touch-friendly interface for processing sales
-- **Product Search**: Quick search by name, SKU, or barcode
-- **Cart Management**: Add/remove items, modify quantities, apply discounts
-- **Multiple Payment Methods**: Cash, card, split payments
-- **Receipt Generation**: Print or email receipts to customers
+## Tech Stack
+- Python 3.9+
+- SQLite (bundled with Python)
+- Typer (CLI)
+- Rich (beautiful terminal output)
 
-### 3. Inventory Management
-- **Stock Adjustments**: Manual stock updates for damages, theft, corrections
-- **Purchase Orders**: Create orders to suppliers when stock is low
-- **Stock Receiving**: Process incoming inventory and update stock levels
-- **Inventory Reports**: Stock levels, low stock alerts, movement history
+## Quick Start
 
-### 4. Sales & Reporting
-- **Daily Sales Summary**: Total sales, transactions, payment methods
-- **Product Performance**: Best/worst selling items
-- **Basic Analytics**: Sales trends over time (daily/weekly/monthly)
-- **Transaction History**: Search and view past sales
+### 1) Install Python 3.9+
+Ensure `python3` and `pip` are available.
 
-### 5. Customer Management (Basic)
-- **Customer Database**: Store customer contact info
-- **Purchase History**: Track customer buying patterns
-- **Simple Loyalty**: Basic point system or visit tracking
+### 2) Create a virtual environment
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-## Technical Requirements
+### 3) Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
-### Platform
-- **Web-based application** (responsive design for tablet/desktop use)
-- **Offline capability** for core POS functions
-- **Cross-platform compatibility** (works on tablets, PCs, phones)
+### 4) Initialize the database
+```bash
+python -m pos_app init-db
+```
 
-### Database
-- Local database with cloud backup option
-- Support for barcode scanner integration
-- Receipt printer compatibility
+### 5) Basic usage
 
-### Security
-- User authentication and role-based access
-- Secure payment processing integration
-- Daily data backup
+- Add a product
+```bash
+python -m pos_app product add \
+  --name "Soda 350ml" \
+  --sku SODA-350 \
+  --cost-price 0.30 \
+  --sale-price 0.50 \
+  --stock-qty 48 \
+  --low-stock-threshold 6
+```
 
-## User Experience Priorities
-1. **Speed**: Fast product lookup and checkout process
-2. **Simplicity**: Intuitive interface requiring minimal training
-3. **Reliability**: Stable performance during busy periods
-4. **Flexibility**: Easy to customize for different shop types
+- List products
+```bash
+python -m pos_app product list
+```
 
-## Success Metrics
-- Complete a sale in under 30 seconds
-- 99% uptime during business hours
-- Staff can learn system in under 2 hours
-- Inventory accuracy of 95%+
+- Edit a product
+```bash
+python -m pos_app product edit --sku SODA-350 --sale-price 0.55 --low-stock-threshold 8
+```
 
-## Future Enhancements (Post-MVP)
-- Multi-location support
-- Advanced reporting and analytics
-- Supplier management
-- Employee time tracking
-- Integration with accounting software
-- Mobile app for inventory checks
-- Advanced customer loyalty programs
+- Remove a product
+```bash
+python -m pos_app product remove --sku SODA-350
+```
+
+- Record a sale (cash-only). Use repeated `--item` options as `sku=QTY`.
+```bash
+python -m pos_app sale new --item SODA-350=2 --item CHIPS-40=1
+```
+
+- Show low-stock alerts
+```bash
+python -m pos_app alerts low-stock
+```
+
+- Show dashboard (on-demand)
+```bash
+python -m pos_app dashboard
+```
+
+- Dashboard watch mode (refresh every 3s)
+```bash
+python -m pos_app dashboard --watch --interval 3
+```
+
+## ROI Definition
+- Profit = Sum((sale_price - cost_price) * quantity) over all sold items
+- Cost of Goods Sold (COGS) = Sum(cost_price * quantity)
+- ROI = Profit / COGS (shown as a ratio)
+
+## Architecture Overview
+```
+pos_app/
+  __init__.py
+  __main__.py           # Entry point: `python -m pos_app`
+  cli.py                # Typer CLI commands
+  db.py                 # SQLite connection + migrations
+  models.py             # Typed data structures
+  utils.py
+  repositories/
+    __init__.py
+    product_repo.py
+    sale_repo.py
+  services/
+    __init__.py
+    inventory_service.py
+    sale_service.py
+    dashboard_service.py
+    alerts_service.py
+```
+
+- Repositories: database CRUD
+- Services: business logic
+- CLI: user interface commands only
+
+## Backup & Portability
+- The app stores data in a single SQLite file `pos_app.db` in the project root by default.
+- Regularly copy this file to a USB drive or cloud backup if available.
+
+## Extensibility Ideas
+- Multi-user and roles: add `users` table, auth, and role checks in services
+- Barcode scanning: map scanner input to `sku`
+- Customer database: add `customers` and link to `sales`
+
+## Troubleshooting
+- If you see a database lock error, wait a moment and retry. Avoid running concurrent writes.
+- For any Unicode/locale issues, ensure your terminal encoding is UTF-8.
+
+## License
+MIT
